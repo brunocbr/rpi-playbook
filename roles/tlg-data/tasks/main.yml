@@ -35,15 +35,6 @@
     dest: /usr/local/share/tlg
     owner: "{{ ansible_user_id }}"
     group: "{{ ansible_user_id }}"
-    remote_src: yes
-  become: true
-
-- name: Unarchive TLG
-  unarchive:
-    src: "{{ temp_dir.path }}/TLG-data.zip"
-    dest: /usr/local/share/tlg
-    owner: "{{ ansible_user_id }}"
-    group: "{{ ansible_user_id }}"
     extra_opts: [--chmod=Du=rwx,go=rx,Fu=rw,go=r]
     remote_src: yes
   become: true
