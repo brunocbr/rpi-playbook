@@ -57,8 +57,8 @@ The playbook consists of the following roles and corresponding tags:
 ### Text Processing
 - **`texlive`**: Installs TexLive for LaTeX processing (`tags: text, texlive`).
 - **`pandoc`**: Installs Pandoc (`tags: text, pandoc`, configurable `pandoc_version`).
-- **`zettel-composer`**: Sets up Zettel Composer for note-taking (`tags: text, zettel-composer`).
-- **`premarkable`**: Prepares Markdown for Remarkable tablets (`tags: text, premarkable`).
+- **`zettel-composer`**: Sets up [Zettel Composer](https://github.com/brunocbr/zettel-composer) for combining notes (`tags: text, zettel-composer`).
+- **`premarkable`**: Preview Markdown files on your browser using [premarkable](https://github.com/brunocbr/premarkable) (`tags: text, premarkable`).
 
 ### Git Repositories
 - **`git-with-creds`**: Clones and manages private Git repositories (`tags: git-pvt-repo`, supports repositories like `bibs`, `profile-src`, `profile`).
