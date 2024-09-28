@@ -1,0 +1,79 @@
+---
+- name: Mount network share
+  mount:
+    src: "//{{ nas_host }}/home"
+    name: /tmp/nas_home
+    opts: "username={{ nas_user }},password={{ nas_password }}"
+    fstype: cifs
+    state: mounted
+  become: true
+
+- name: Create a temporary directory
+  tempfile:
+    state: directory
+  register: temp_dir
+
+- name: Copy TLG archive from network share
+  copy:
+    src: /tmp/nas_home/Installation/TLG-data.zip
+    dest: "{{ temp_dir.path }}/TLG-data.zip"
+    owner: "{{ ansible_user_id }}"
+    remote_src: yes
+  become: true
+
+- name: Create TLG directory
+  file:
+    path: /usr/local/share/tlg
+    state: directory
+    owner: "{{ ansible_user_id }}"
+    group: "{{ ansible_user_id }}"
+    mode: '0755'
+
+- name: Unarchive TLG
+  unarchive:
+    src: "{{ temp_dir.path }}/TLG-data.zip"
+    dest: /usr/local/share/tlg
+    owner: "{{ ansible_user_id }}"
+    group: "{{ ansible_user_id }}"
+    remote_src: yes
+  become: true
+
+- name: Unarchive TLG
+  unarchive:
+    src: "{{ temp_dir.path }}/TLG-data.zip"
+    dest: /usr/local/share/tlg
+    owner: "{{ ansible_user_id }}"
+    group: "{{ ansible_user_id }}"
+    extra_opts: [--chmod=Du=rwx,go=rx,Fu=rw,go=r]
+    remote_src: yes
+  become: true
+
+- name: Set ownership of /usr/local/share/tlg to ansible user
+  file:
+    path: /usr/local/share/tlg
+    state: directory
+    recurse: yes
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+  become: true
+  tags: tlg-data-perms
+
+- name: Set permissions for the TLG files
+  file:
+    path: /usr/local/share/tlg
+    recurse: yes
+    mode: 'u+rw,g+r,o+r'  # Set read and write for owner, read for group and others
+  become: true
+  tags: tlg-data-perms
+
+
+- name: Remove temporary directory
+  file:
+    path: "{{ temp_dir.path }}"
+    state: absent
+
+- name: Unmount network share
+  mount:
+    path: /tmp/nas_home
+    state: absent
+  become: true

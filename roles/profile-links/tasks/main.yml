@@ -1,0 +1,6 @@
+---
+- name: Symlink .pandoc diretory
+  file:
+    src: "{{ home_directory }}/src/profile/pandoc"
+    dest: "{{ home_directory }}/.pandoc"
+    state: link

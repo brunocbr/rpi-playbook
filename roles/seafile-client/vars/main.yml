@@ -1,0 +1,8 @@
+---
+seafile_data_directory: "~/seafile-client"
+seafile_library_id: "306df840-49de-4d0a-a979-b77c1f423913"  # Replace with your library ID
+seafile_server_url: "http://100.68.85.4:8009"  # Replace with your server URL
+seafile_download_directory: "~/seafile"  # Destination directory for downloaded files
+seafile_username: "conteb@gmail.com"  # Your Seafile username
+seafile_user: "{{ ansible_user }}"
+seafile_group: "{{ ansible_user }}" 

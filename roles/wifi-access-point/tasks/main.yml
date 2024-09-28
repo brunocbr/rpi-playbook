@@ -1,0 +1,183 @@
+---
+- name: Install NetworkManager and dnsmasq if not present
+  apt:
+    name:
+      - network-manager
+      - dnsmasq
+    state: present
+  become: true
+
+# - name: Stop and disable wpa_supplicant to avoid conflicts
+#   service:
+#     name: wpa_supplicant
+#     state: stopped
+#     enabled: false
+#   become: true
+
+- name: Configure the Wi-Fi Access Point using nmcli
+  nmcli:
+    conn_name: ap-mode
+    ifname: wlan0
+    type: wifi
+    wifi:
+      mode: ap
+    ssid: "{{ wifi_access_point_ssid }}"
+    wifi_sec:
+      psk: "{{ wifi_access_point_psk }}"  # Using the pre-configured PSK
+      key-mgmt: "wpa-psk"
+    ip4: "{{ wifi_access_point_ip4 }}"
+    autoconnect: no
+    state: present
+  become: true
+
+# - name: Set the static IP address for the Wi-Fi interface (wlan0)
+#   nmcli:
+#     conn_name: wifi-ap
+#     ifname: wlan0
+#     type: wifi
+#     ipv4_method: manual
+#     ip4: 10.57.0.1/24
+#     gw4: 10.57.0.1
+#     dns4: 8.8.8.8
+#   become: true
+
+# - name: Ensure the AP is disabled by default
+#   nmcli:
+#     conn_name: ap-mode
+#     state: down
+#     state: present
+#   become: true
+
+# - name: Restart NetworkManager to apply configuration
+#   service:
+#     name: NetworkManager
+#     state: restarted
+#   become: true
+
+- name: Add firewall rule to allow DHCP (server) in nftables
+  lineinfile:
+    path: /etc/nftables.conf
+    insertafter: 'chain input {'
+    line: '                udp dport 67 accept;'
+  become: true
+  tags: dnsmasq
+
+# - name: Add firewall rule to allow DHCP (client) in nftables
+#   lineinfile:
+#     path: /etc/nftables.conf
+#     insertafter: '^table inet filter {'
+#     line: '        udp sport 68 accept'
+#   become: true
+
+- name: Add firewall rule to allow DNS (port 53) in nftables
+  lineinfile:
+    path: /etc/nftables.conf
+    insertafter: 'chain input {'
+    line: '                udp dport 53 accept;'
+  become: true
+  tags: dnsmasq
+
+- name: Reload nftables to apply firewall changes
+  command: nft -f /etc/nftables.conf
+  become: true
+  tags: dnsmasq
+
+- name: Configure Dnsmasq
+  template: src=dnsmasq-ap-mode.j2 dest=/etc/dnsmasq.d/dnsmasq-wlan_ap.conf
+  tags: dnsmasq
+
+- name: Enable and start Dnsmaq
+  service: name=dnsmasq state=started enabled=yes
+  tags: dnsmasq
+
+# - name: Create the network check script
+#   copy:
+#     dest: /usr/local/bin/network-check.sh
+#     content: |
+#       #!/bin/bash
+#       available_networks=$(nmcli -t -f active,ssid dev wifi | grep -E '^yes')
+#       if [ -z "$available_networks" ]; then
+#           echo "No known networks found. Activating Access Point..."
+#           nmcli con up ap-mode
+#       else
+#           echo "Connected to a known network."
+#       fi
+#     mode: '0755'
+#   become: true
+
+- name: Create the network check script
+  copy:
+    dest: /usr/local/bin/network-check.sh
+    content: |
+      #!/bin/bash
+      # List of known networks from the Ansible wifi_networks variable
+      known_networks=( {{ wifi_networks | map(attribute='ssid') | map('quote') | join(' ') }} )
+
+      # Check if connected to any Wi-Fi network
+      current_connection=$(nmcli -t -f NAME,TYPE,DEVICE con show --active | grep wlan0 | awk -F':' '{print $1}')
+      usb_interface_running=$(ifconfig usb0 2>/dev/null | grep -o "RUNNING")
+
+      if [ "$usb_interface_running" == "RUNNING" ] ; then
+      	echo "Connected via USB."
+        exit 0
+      fi
+
+      # If there is no current connection or in access point mode
+      if [ -z "$current_connection" ] || [ "$current_connection" == "ap-mode" ]; then
+          # Scan available networks
+          available_networks=$(nmcli -t -f ssid dev wifi | grep -v '^$')
+
+          for ssid in "${known_networks[@]}"; do
+              # Check if any known network is available
+              if echo "$available_networks" | grep -q "$ssid"; then
+                  echo "Known network $ssid found, connecting..."
+                  nmcli con up "$ssid"
+                  exit 0
+              fi
+          done
+
+          if [ -z "$current_connection" ] && [ -z "$usb_interface_running" ]; then
+          		echo "No known networks found. Activating Access Point..."
+              nmcli con up ap-mode
+          fi
+      else
+          echo "Connected to $current_connection."
+      fi
+    mode: '0755'
+  become: true
+  tags: netcheck-script
+
+
+- name: Create a systemd service to check for known networks
+  copy:
+    dest: /etc/systemd/system/network-check.service
+    content: |
+      [Unit]
+      Description=Check Wi-Fi networks and start AP if no known network found
+      After=network.target
+
+      [Service]
+      ExecStart=/usr/local/bin/network-check.sh
+
+      [Install]
+      WantedBy=multi-user.target
+  become: true
+  tags: netcheck-script
+
+- name: Enable and start the network-check service
+  systemd:
+    name: network-check.service
+    enabled: yes
+    state: started
+  become: true
+  tags: netcheck-script
+
+- name: Configure periodic check for Wi-Fi networks (every 5 minutes)
+  cron:
+    name: "Network check to enable AP if needed"
+    job: "/usr/local/bin/network-check.sh >/dev/null 2>&1"
+    minute: "*/5"
+    user: root
+  become: true
+  tags: netcheck-script
+

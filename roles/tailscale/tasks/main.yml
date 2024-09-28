@@ -1,0 +1,91 @@
+---
+- name: Install necessary packages
+  apt:
+    name:
+      - lsb-release
+      - curl
+    state: present
+  tags: tailscale
+
+- name: Get the GPG key for the Tailscale repository
+  shell: |
+    curl -L https://pkgs.tailscale.com/stable/raspbian/$(lsb_release -cs).noarmor.gpg | tee /usr/share/keyrings/tailscale-archive-keyring.gpg >/dev/null
+  tags: tailscale
+
+- name: Add the Tailscale repository
+  shell: |
+    echo "deb [signed-by=/usr/share/keyrings/tailscale-archive-keyring.gpg] https://pkgs.tailscale.com/stable/raspbian $(lsb_release -cs) main" | tee /etc/apt/sources.list.d/tailscale.list
+  tags: tailscale
+
+- name: Update the package list after adding Tailscale repository
+  apt:
+    update_cache: yes
+  tags: tailscale
+
+- name: Install Tailscale
+  apt:
+    name: tailscale
+    state: present
+  tags: tailscale
+
+
+- name: Reboot the Raspberry Pi
+  reboot:
+    msg: "Rebooting to complete Tailscale installation"
+    connect_timeout: 5
+    pre_reboot_delay: 5
+    post_reboot_delay: 30
+  tags: tailscale
+  ignore_errors: yes
+
+
+- name: check authentication status
+  block:
+    - ansible.builtin.set_fact:
+        _auth_needed: false
+
+    - register: _status
+      changed_when: false
+      ansible.builtin.command:
+        argv:
+          - 'tailscale'
+          - 'status'
+          - '--json'
+
+    - when: _fields.BackendState == "NeedsLogin"
+      ansible.builtin.set_fact:
+        _auth_needed: true
+      vars:
+        _fields: "{{ _status.stdout | from_json }}"
+
+- name: authenticate if needed
+  when: _auth_needed
+  block:
+    - name: get authorization key
+      register: _authkey
+      ansible.builtin.pause:
+        prompt: "Enter Tailscale authorization key - see https://login.tailscale.com/admin/settings/keys"
+        echo: yes
+
+    - name: authorize machine
+      ansible.builtin.command:
+        argv:
+          - 'tailscale'
+          - 'up'
+          - '--authkey'
+          - "{{ _authkey.user_input }}"
+
+# TODO:
+# - name: Start Tailscale
+#   command: tailscale up
+#   register: tailscale_output
+#   ignore_errors: yes
+#   tags: tailscale
+
+# - name: Print Tailscale authentication URL
+#   debug:
+#     msg: "You need to authenticate: {{ tailscale_output.stdout }}"
+#   when: tailscale_output is defined and tailscale_output.stdout is defined
+#   tags: tailscale
+
+

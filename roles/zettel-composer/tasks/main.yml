@@ -1,0 +1,15 @@
+- name: Clone the zettel composer repository
+  git:
+    repo: https://github.com/brunocbr/zettel-composer.git
+    dest: "/usr/local/share/zettel-composer"
+    update: yes
+  tags: zettel-composer
+
+- name: Create a symlink for zettel-compose
+  file:
+    src: "/usr/local/share/zettel-composer/zettel-compose.py"
+    dest: "/usr/local/bin/zettel-compose"
+    state: link
+    mode: '0755'
+  tags: zettel-composer
+

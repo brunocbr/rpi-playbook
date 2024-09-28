@@ -1,0 +1,84 @@
+---
+# - name: Ensure Emacs is installed
+#   include_role:
+#     name: emacs-build
+
+# - name: Install Git (if not already installed)
+#   apt:
+#     name: git
+#     state: present
+#     update_cache: yes
+
+- name: Check if install path exists
+  stat:
+    path: "{{ spacemacs_install_dir }}"
+  register: install_dir
+
+- name: Clone Spacemacs repository
+  git:
+    repo: "{{ spacemacs_repo_url }}"
+    dest: "{{ spacemacs_install_dir }}"
+    version: "{{ spacemacs_version }}"
+    force: yes
+    update: yes
+  become: yes
+  become_user: "{{ spacemacs_user }}"
+  when: not install_dir.stat.exists
+
+- name: Set ownership for the Spacemacs directory
+  file:
+    path: "{{ spacemacs_install_dir }}"
+    owner: "{{ spacemacs_user }}"
+    group: "{{ spacemacs_user }}"
+    state: directory
+    recurse: yes
+
+- name: Copy spacemacs configuration
+  copy:
+    src: dotfile.el
+    dest: "/home/{{ spacemacs_user }}/.spacemacs"
+    mode: '0644'
+
+# - name: Clone phi layer from private repository
+#   git:
+#     repo: "https://{{ github_username }}:{{ github_password }}@github.com/brunocbr/phi-layer.git"
+#     dest: "{{ spacemacs_install_dir }}/private/phi"
+#     version: "main"  # or another branch name
+#     force: yes
+#     update: yes
+#   become: yes
+#   become_user: "{{ spacemacs_user }}"
+#   tags: phi
+
+- name: Remove existing private directory if it exists
+  file:
+    path: "{{ spacemacs_install_dir }}/private"
+    state: absent
+  become: yes
+  become_user: "{{ spacemacs_user }}"
+  tags: phi
+
+- name: Clone private directory from repository
+  git:
+    repo: "https://{{ github_username }}:{{ github_password }}@github.com/brunocbr/spacemacs-private.git"
+    dest: "{{ spacemacs_install_dir }}/private"
+    force: yes
+    update: yes
+    version: "main"
+    recursive: yes
+    # FIXME: track_submodules: yes
+  become: yes
+  become_user: "{{ spacemacs_user }}"
+  tags: phi, spacemacs-private
+
+
+# - name: Install Emacs packages via Spacemacs
+#   command: >
+#     emacs --batch -l ~/.emacs.d/init.el
+#     --eval="(progn (configuration-layer/sync) (kill-emacs))"
+#   args:
+#     creates: "~/.emacs.d/elpa"
+#   become: yes
+#   become_user: "{{ spacemacs_user }}"
+#   tags: phi
+

@@ -1,0 +1,5 @@
+---
+spacemacs_user: "{{ ansible_user }}"  # Default to the Ansible user
+spacemacs_repo_url: "https://github.com/syl20bnr/spacemacs.git"
+spacemacs_install_dir: "/home/{{ spacemacs_user }}/.emacs.d"
+spacemacs_version: "develop"

@@ -1,0 +1,77 @@
+---
+# - name: Ensure necessary dependencies are installed
+#   apt:
+#     name:
+#       - wget
+#       - gh
+#       - make
+#       - g++
+#       - cabal-install
+#       - libgmp-dev
+#     state: present
+#   become: true
+
+# - name: Download the specified version of Pandoc from GitHub
+#   get_url:
+#     url: "https://github.com/jgm/pandoc/archive/refs/tags/{{ pandoc_version }}.tar.gz"
+#     dest: "/tmp/pandoc-{{ pandoc_version }}-source.tar.gz"
+
+# - name: Extract the Pandoc source archive
+#   unarchive:
+#     src: "/tmp/pandoc-{{ pandoc_version }}-source.tar.gz"
+#     dest: "/tmp"
+#     remote_src: yes
+
+# - name: Build and install Pandoc
+#   shell: |
+#     cd /tmp/pandoc-{{ pandoc_version }}
+#     cabal update
+#     cabal install -frelease
+#   become: true
+
+# - name: Create a symbolic link to the pandoc binary
+#   file:
+#     src: "/root/.cabal/bin/pandoc"
+#     dest: "/usr/local/bin/pandoc"
+#     state: link
+#   become: true
+
+# - name: Clean up temporary files
+#   file:
+#     path: "/tmp/pandoc-{{ pandoc_version }}"
+#     state: absent
+#   become: true
+
+- name: Ensure wget is installed
+  apt:
+    name: wget
+    state: present
+  become: true
+
+- name: Ensure necessary dependencies are installed
+  apt:
+    name:
+      - libgmp10
+    state: present
+  become: true
+
+- name: Determine the appropriate architecture for Pandoc
+  set_fact:
+    pandoc_arch: 1-arm64 
+
+- name: Download the specified version of Pandoc .deb package from GitHub
+  get_url:
+    url: "https://github.com/jgm/pandoc/releases/download/{{ pandoc_version }}/pandoc-{{ pandoc_version }}-{{ pandoc_arch }}.deb"
+    dest: "/tmp/pandoc-{{ pandoc_version }}-{{ pandoc_arch }}.deb"
+
+- name: Install the Pandoc .deb package
+  apt:
+    deb: "/tmp/pandoc-{{ pandoc_version }}-{{ pandoc_arch }}.deb"
+  become: true
+
+- name: Clean up the downloaded .deb package
+  file:
+    path: "/tmp/pandoc-{{ pandoc_version }}-{{ pandoc_arch }}.deb"
+    state: absent
+  become: true
+

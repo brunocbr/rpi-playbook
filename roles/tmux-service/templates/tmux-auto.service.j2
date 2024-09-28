@@ -1,0 +1,14 @@
+[Unit]
+Description=tmux emacs auto-session service
+PartOf=tmux-master.service
+After=tmux-master.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+User={{ ansible_user }}
+ExecStart=/usr/bin/tmux new-session -d -s auto-session /usr/local/bin/emacs -nox
+ExecStop=/usr/bin/tmux kill-session -t auto-session
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,71 @@
+---
+- name: Set up Raspberry Pi Fleet
+  hosts: orion, castor
+  become: true
+  vars_files:
+    - credentials.yml
+  vars:
+    home_directory: "/home/{{ ansible_user }}"
+    emacs_build_processes: "{{ ansible_processor_vcpus }}"
+
+  roles:
+
+    #######
+    # RPi #
+    #######
+
+    - { role: zero-2w-setup, tags: [ zero2 ] }
+
+    #########################
+    # Network & Basic Tools #
+    #########################
+
+    - { role: apt-update, tags: [foundational, apt-update] }
+    - { role: tailscale, tags: [foundational,  tailscale] }
+    - { role: seafile-client, tags: [foundational, seafile] }
+    - { role: sync-notify, tags: [foundational, sync-notify] }
+    - { role: shell, tags: [foundational,  shell] }
+    - { role: babashka, tags: [foundational, babashka] }
+    - { role: wifi-networks, tags: [network, wifi-networks], wifi_interface: 'wlan0' }
+    - { role: wifi-access-point, tags: [network, wifi-access-point] }
+    - { role: usb-gadget, tags: [network, usb-gadget] }
+
+    #####################
+    # Emacs Environment #
+    #####################
+
+    - { role: emacs-build, tags: [emacs, emacs-build], emacs_version: '29.4' }
+    - { role: spacemacs, tags: [emacs, spacemacs] }
+    - { role: tmux-service, tags: [emacs, tmux-service] }
+
+    ######################
+    # Diogenes & the TLG #
+    ######################
+
+    - { role: tlg-data, tags: [tlg, tlg-data] }
+    - { role: diogenes, tags: [tlg, diogenes], diogenes_server_interface: "lo" }
+
+    ###################
+    # Text Processing #
+    ###################
+
+    - { role: texlive, tags: [text, texlive] }
+    - { role: pandoc, tags: [text, pandoc], pandoc_version: '3.4' }
+    - { role: zettel-composer, tags: [text, zettel-composer] }
+    - { role: premarkable, tags: [text, premarkable] }
+
+    ################
+    # My git stuff #
+    ################
+
+    - { role: git-with-creds, vars: { repo_name: bibs }, tags: [git-pvt-repo, bibs] }
+    - { role: git-with-creds, vars: { repo_name: profile }, tags: [git-pvt-repo, profile-src, profile] }
+    - { role: profile-links, tags: [git-pvt-repo, profile-links, profile] }
+
+
+    ############
+    # Routines #
+    ############
+
+    - { role: poweroff, tags: poweroff }
+

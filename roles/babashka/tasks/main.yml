@@ -1,0 +1,19 @@
+---
+- name: Download Babashka installer script
+  get_url:
+    url: https://raw.githubusercontent.com/babashka/babashka/master/install
+    dest: /tmp/babashka-install
+    mode: '0755'
+  tags: babashka
+
+- name: Run Babashka installer script
+  command: /tmp/babashka-install
+  args:
+    creates: /usr/local/bin/bb
+  tags: babashka
+
+- name: Clean up Babashka installer script
+  file:
+    path: /tmp/babashka-install
+    state: absent
+  tags: babashka

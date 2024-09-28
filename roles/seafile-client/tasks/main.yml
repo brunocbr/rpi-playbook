@@ -1,0 +1,88 @@
+---
+- name: Install Seafile client
+  apt:
+    name: seafile-cli
+    state: present
+  tags: seafile
+
+- name: Create directory for Seafile client data
+  file:
+    path: "{{ seafile_data_directory }}"
+    state: directory
+    mode: '0755'
+  become: false
+  tags: seafile
+
+- name: Initialize Seafile client
+  command: "seaf-cli init -d {{ seafile_data_directory }}"
+  become: false
+  tags: seafile
+
+# - name: Start Seafile client
+#   command: "seaf-cli start"
+#   become: false
+#   tags: seafile
+
+- name: Create systemd service file for Seafile client
+  template:
+    src: seafile-client.service.j2
+    dest: /etc/systemd/system/seafile-client.service
+    mode: '0644'
+  tags: seafile
+
+- name: Reload systemd to apply changes
+  systemd:
+    daemon_reload: yes
+  tags: seafile
+
+- name: Enable and start Seafile client service
+  systemd:
+    name: seafile-client
+    enabled: yes
+    state: started
+  tags: seafile
+
+- name: Check if Seafile library directory exists
+  stat:
+    path: "{{ seafile_download_directory }}"  # Replace with the specific library path
+  register: seafile_library_status
+  tags: seafile
+
+- name: Download Seafile library
+  command: "seaf-cli download -l {{ seafile_library_id }} -s {{ seafile_server_url }} -d {{ seafile_download_directory }} -u {{ seafile_username }} -p {{ seafile_password }}"
+  become: false
+  when: not seafile_library_status.stat.exists
+  tags: seafile
+
+- name: Ensure Alpha directory exists
+  file:
+    path: "{{ seafile_download_directory }}/Notas/Alpha"
+    state: directory
+    mode: '0755'
+  become: false
+  tags: seafile,sys
+
+- name: Create symlink for Alpha directory
+  file:
+    src: "{{ seafile_download_directory }}/Notas/Alpha"
+    dest: "~/alpha"
+    state: link
+  become: false
+  tags: seafile,sys
+
+- name: Ensure Phi directory exists
+  file:
+    path: "{{ seafile_download_directory }}/Notas/Phi"
+    state: directory
+    mode: '0755'
+  become: false
+  tags: seafile,sys
+
+- name: Create symlink for Phi directory
+  file:
+    src: "{{ seafile_download_directory }}/Notas/Phi"
+    dest: "~/phi"
+    state: link
+  become: false
+  tags: seafile,sys
+

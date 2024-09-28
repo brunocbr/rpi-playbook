@@ -1,0 +1,42 @@
+---
+- name: Hold firmware-brcm80211 package
+  command: "apt-mark hold firmware-brcm80211"
+  notify: Reboot the system
+  become: true
+
+## Abaixo, a tarefa força instalação de firmware mais antigo, caso acidentalmente um upgrade já tenha sido feito
+# - name: Download a functioning Wi-Fi firmware
+#   get_url:
+#     url: "https://github.com/RPi-Distro/firmware-nonfree/raw/d95f6614b19cb2d3ead4f2e2ea4ba0a7397ac5c0/debian/config/brcm80211/brcm/brcmfmac43436f-sdio.bin"
+#     dest: "/tmp/brcmfmac43436f-sdio.bin"
+#     mode: '0644'
+#   tags: wifi-firmware
+#   # https://github.com/raspberrypi/firmware/issues/1768
+
+
+# - name: Replace the existing Wi-Fi firmware
+#   copy:
+#     src: "/tmp/brcmfmac43436f-sdio.bin"
+#     dest: "/lib/firmware/brcm/brcmfmac43436-sdio.bin"
+#     owner: root
+#     group: root
+#     mode: '0644'
+#     remote_src: true
+#   become: true
+#   notify: Reboot the system
+#   tags: wifi-firmware
+
+- name: Reduce RPi Zero 2 W power consumption and heat in /boot/firmware/config.txt
+  blockinfile:
+    path: /boot/firmware/config.txt
+    block: |
+      # Reduce power consumption and heat on Raspberry Pi Zero 2 W
+      arm_freq=600
+      arm_freq_min=600
+      over_voltage=-2
+      over_voltage_min=-6
+    marker: "# {mark} Reduced power consumption and heat settings"
+  become: true
+  notify: Reboot the system
+  tags: pi-underclock
+

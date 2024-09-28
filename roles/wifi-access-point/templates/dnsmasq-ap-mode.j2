@@ -1,0 +1,5 @@
+interface={{ wifi_access_point_device }}
+dhcp-range={{ wifi_access_point_ipnet }}.10,{{ wifi_access_point_ipnet }}.250,2h
+log-queries
+#log-dhcp
+log-facility=/var/log/dnsmasq.log

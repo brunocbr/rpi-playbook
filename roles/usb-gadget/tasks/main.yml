@@ -1,0 +1,111 @@
+---
+- name: Ensure required packages are installed
+  apt:
+    name: dnsmasq
+    state: present
+    update_cache: yes
+  become: true
+
+- name: Add dwc2 overlay to /boot/firmware/config.txt
+  lineinfile:
+    path: /boot/firmware/config.txt
+    line: dtoverlay=dwc2
+    create: yes
+  become: true
+
+- name: Ensure modules-load=dwc2 is present in /boot/firmware/cmdline.txt
+  lineinfile:
+    path: /boot/firmware/cmdline.txt
+    regexp: '^(.*)(modules-load=dwc2)?(.*)$'
+    line: '\1 modules-load=dwc2 \3'
+    state: present
+    backrefs: yes
+  become: yes
+
+- name: Add libcomposite to /etc/modules
+  lineinfile:
+    path: /etc/modules
+    line: libcomposite
+    create: yes
+  become: true
+
+# TODO: é necessário? onde colocar?
+# - name: Configure DHCP settings in /etc/dhcpcd.conf
+#   lineinfile:
+#     path: /etc/dhcpcd.conf
+#     line: denyinterfaces usb0
+#     create: yes
+
+- name: Create dnsmasq configuration for usb0
+  copy:
+    dest: /etc/dnsmasq.d/usb.conf
+    content: |
+      interface=usb0
+      dhcp-range=10.55.0.2,10.55.0.6,255.255.255.248,1h
+      dhcp-option=3
+      leasefile-ro
+    mode: '0644'
+  become: true
+
+- name: Create /etc/network/interfaces.d/usb0 with static network configuration
+  copy:
+    dest: /etc/network/interfaces.d/usb0
+    content: |
+      auto usb0
+      allow-hotplug usb0
+      iface usb0 inet static
+        address 10.55.0.1
+        netmask 255.255.255.248
+    owner: root
+    group: root
+    mode: '0644'
+  become: yes
+
+- name: Create USB gadget script
+  copy:
+    dest: /root/usb.sh
+    content: |
+      #!/bin/bash
+      cd /sys/kernel/config/usb_gadget/
+      mkdir -p pi4
+      cd pi4
+      echo 0x1d6b > idVendor # Linux Foundation
+      echo 0x0104 > idProduct # Multifunction Composite Gadget
+      echo 0x0100 > bcdDevice # v1.0.0
+      echo 0x0200 > bcdUSB # USB2
+      echo 0xEF > bDeviceClass
+      echo 0x02 > bDeviceSubClass
+      echo 0x01 > bDeviceProtocol
+      mkdir -p strings/0x409
+      echo "fedcba9876547219" > strings/0x409/serialnumber
+      echo "TheWifiNinja" > strings/0x409/manufacturer
+      echo "{{ ansible_hostname }} USB Device" > strings/0x409/product
+      mkdir -p configs/c.1/strings/0x409
+      echo "Config 1: ECM network" > configs/c.1/strings/0x409/configuration
+      echo 250 > configs/c.1/MaxPower
+      mkdir -p functions/ecm.usb0
+      HOST="00:dc:c8:f7:77:14" # "HostPC"
+      SELF="00:dd:ec:eb:6d:a1" # "BadUSB"
+      echo $HOST > functions/ecm.usb0/host_addr
+      echo $SELF > functions/ecm.usb0/dev_addr
+      ln -s functions/ecm.usb0 configs/c.1/
+      udevadm settle -t 5 || :
+      ls /sys/class/udc > UDC
+      ifup usb0
+      service dnsmasq restart
+    mode: '0755'
+  become: true
+
+- name: Add script to /etc/rc.local for startup
+  lineinfile:
+    path: /etc/rc.local
+    line: "sh /root/usb.sh"
+    insertbefore: "exit 0"
+    create: yes
+  become: true
+
+- name: Reboot the system to apply changes
+  reboot:
+    msg: "Rebooting to apply USB gadget configuration changes"
+    connect_timeout: 5
+    reboot_timeout: 300

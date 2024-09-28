@@ -1,0 +1,101 @@
+---
+- name: Ensure the target directory exists
+  file:
+    path: "{{ diogenes_dest }}"
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Clone the Diogenes repository
+  git:
+    repo: "{{ diogenes_repo_url }}"
+    dest: "{{ diogenes_dest }}"
+    # version: "{{ diogenes_version }}"
+    update: yes
+    force: yes
+  become: true
+  become_user: root
+
+- name: Check if prebuilt data already exists
+  stat:
+    path: "{{ diogenes_dest }}/dependencies/data"
+  register: datapath
+
+- name: Run 'make -f mk.prebuilt-data' in the diogenes directory
+  command: make -f mk.prebuilt-data
+  args:
+    chdir: "{{ diogenes_dest }}"
+  become: true
+  become_user: root
+  when: not datapath.stat.exists
+
+- name: Run 'make' in the diogenes directory
+  command: make
+  args:
+    chdir: "{{ diogenes_dest }}"
+  become: true
+  become_user: root
+
+- name: Create Diogenes configuration directory
+  file:
+    path: "/home/{{ ansible_user }}/.config/Diogenes"
+    state: directory
+    mode: '0755'
+  become: false
+
+- name: Create Diogenes configuration file
+  copy:
+    dest: "/home/{{ ansible_user }}/.config/Diogenes/diogenes.prefs"
+    content: |
+      # Created by ansible
+      phi_dir "{{ tlg_data_path }}/PHI-5 (Latin texts)"
+      tlg_dir "{{ tlg_data_path }}/TLG-E (Greek Texts)"
+  become: false
+
+- name: Copy sepia stylesheet
+  copy:
+    dest: "{{ diogenes_dest }}/server/diogenes.css"
+    src: diogenes-sepia.css
+    mode: '0644'
+    force: true
+  become: true
+  become_user: root
+
+- name: Gather network interface facts
+  ansible.builtin.setup:
+    filter: ansible_interfaces
+
+- name: Get the IP address for the server network interface
+  set_fact:
+    server_ip: "{{ vars['ansible_' + diogenes_server_interface].ipv4.address }}"
+
+- name: Create a systemd service for the Diogenes server
+  copy:
+    dest: /etc/systemd/system/diogenes.service
+    content: |
+      [Unit]
+      Description=Diogenes Server
+      After=network.target
+
+      [Service]
+      ExecStart={{ diogenes_dest }}/server/diogenes-server.pl -H {{ server_ip }}
+      Restart=on-failure
+      User={{ ansible_user }}
+      Group={{ ansible_user }}
+
+      [Install]
+      WantedBy=multi-user.target
+  become: true
+
+- name: Reload systemd to recognize the new service
+  systemd:
+    daemon_reload: yes
+  become: true
+
+- name: Enable and start the Diogenes service
+  systemd:
+    name: diogenes
+    enabled: yes
+    state: started
+  become: true

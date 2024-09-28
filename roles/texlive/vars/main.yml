@@ -1,0 +1,21 @@
+---
+latex_packages:
+  - latexmk
+  - biblatex
+  - biber
+  - xargs
+  - reledmac
+  - abntex2
+  - csquotes
+  - multirow
+  - selnolig
+  - titling
+  - xcolor
+  - bigfoot
+  - needspace
+  - marginnote
+  - imakeidx
+  - sectsty
+  - lipsum
+  - titlepic
+

@@ -1,0 +1,5 @@
+---
+- name: Reboot the system
+  reboot:
+    msg: "Rebooting to apply new Wi-Fi firmware."
+

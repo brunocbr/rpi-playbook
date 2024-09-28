@@ -1,0 +1,26 @@
+---
+- name: Deploy tmux master service file
+  template:
+    src: tmux-master.service.j2
+    dest: /etc/systemd/system/tmux-master.service
+
+- name: Deploy tmux auto-session service file
+  template:
+    src: tmux-auto.service.j2
+    dest: /etc/systemd/system/tmux-auto.service
+
+- name: Reload systemd daemon
+  systemd:
+    daemon_reload: yes
+
+- name: Enable and start tmux master service
+  systemd:
+    name: tmux-master.service
+    enabled: yes
+    state: started
+
+- name: Enable and start tmux auto-session service
+  systemd:
+    name: tmux-auto.service
+    enabled: yes
+    state: started

@@ -1,0 +1,38 @@
+---
+- name: Update apt cache
+  apt:
+    update_cache: yes
+  tags: shell
+
+- name: Install tmux
+  apt:
+    name: tmux
+    state: present
+  tags: shell
+
+- name: Copy tmux configuration
+  copy:
+    src: tmux.conf
+    dest: "/etc/tmux.conf"
+    mode: '0644'
+  tags: shell
+
+- name: Install mosh
+  apt:
+    name: mosh
+    state: present
+  tags: shell
+
+- name: Install ripgrep
+  apt:
+    name: ripgrep
+    state: present
+  tags: shell
+
+- name: Install fzf
+  apt:
+    name: fzf
+    state: present
+  tags: shell
+
+

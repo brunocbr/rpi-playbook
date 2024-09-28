@@ -1,0 +1,6 @@
+---
+diogenes_repo_url: "https://github.com/pjheslin/diogenes.git"
+diogenes_dest: "/usr/local/share/diogenes"
+diogenes_version: "main"
+tlg_data_path: "/usr/local/share/tlg"
+diogenes_server_interface: "usb0"

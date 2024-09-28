@@ -1,0 +1,56 @@
+---
+# TODO: trocar bibliotecas por pods
+- name: Ensure Java is installed
+  apt:
+    name: default-jdk
+    state: present
+    update_cache: yes
+  tags: java
+
+- name: Clone the premarkable repository
+  git:
+    repo: https://github.com/brunocbr/premarkable.git
+    dest: "/usr/local/share/premarkable"
+    update: yes
+  tags: premarkable
+
+- name: Create a symlink for premarkable.clj
+  file:
+    src: "/usr/local/share/premarkable/premarkable.clj"
+    dest: "/usr/local/bin/premarkable"
+    state: link
+    mode: '0755'
+  tags: premarkable
+
+- name: Create a systemd service for premarkable
+  copy:
+    dest: /etc/systemd/system/premarkable.service
+    content: |
+      [Unit]
+      Description=Premarkable Conversion Service
+      After=network.target
+
+      [Service]
+      Type=simple
+      User={{ ansible_user }}
+      WorkingDirectory={{ home_directory }}
+      ExecStart=/usr/local/bin/premarkable -S "{{ home_directory }}/src/profile/css/amblin II.css" \
+                  {{ home_directory }}/Downloads/OUTPUT.md -P \
+                  "/usr/bin/pandoc -f markdown -L {{ home_directory }}/.pandoc/noexport-subtrees.lua -s -C --template=lecture" \
+                  -w 840
+      Restart=on-failure
+
+      [Install]
+      WantedBy=multi-user.target
+
+- name: Reload systemd daemon
+  systemd:
+    daemon_reload: yes
+
+- name: Enable and start premarkable service
+  systemd:
+    name: premarkable
+    enabled: yes
+    state: started
+
+

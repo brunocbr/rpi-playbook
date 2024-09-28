@@ -1,0 +1,7 @@
+---
+# wifi_networks:
+#   - name: home
+#     ssid: conte_net
+#     psk: XXX
+#			priority: 1
+wifi_interface: "wlan0"

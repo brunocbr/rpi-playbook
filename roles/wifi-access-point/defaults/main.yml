@@ -1,0 +1,6 @@
+---
+wifi_access_point_device: wlan0
+wifi_access_point_ipnet: 10.77.4
+wifi_access_point_ip4: "{{ wifi_access_point_ipnet }}.1/24"
+wifi_access_point_ssid: "{{ ansible_hostname }}'s AP"
+

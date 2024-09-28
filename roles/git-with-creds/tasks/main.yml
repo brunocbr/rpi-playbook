@@ -1,0 +1,17 @@
+---
+- name: Ensure user src directory exists
+  file:
+    path: "{{ home_directory }}/src"
+    state: directory
+    mode: '0755'
+  become: false
+
+- git:
+    repo: "https://{{ github_username|urlencode() }}:{{ github_password|urlencode() }}@github.com/brunocbr/{{ repo_name }}"
+    dest: "{{ home_directory }}/src/{{ repo_name }}"
+    update: yes
+
+# - name: remove visibility of credentials
+#   command:
+#     cmd: git remote set-url origin https://github.com/brunocbr/{{repo_name}}.git
+#     chdir: "{{ home_directory }}/src/{{ repo_name }}"

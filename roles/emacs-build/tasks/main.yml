@@ -1,0 +1,73 @@
+---
+- name: Install required packages for building Emacs
+  apt:
+    name:
+      - build-essential
+      - libgtk-3-dev
+      - libgnutls28-dev
+      - libncurses5-dev
+      - libjpeg-dev
+      - libpng-dev
+      - libgif-dev
+      - libtiff-dev
+      - libxpm-dev
+      - libxml2-dev
+      - libjansson-dev
+      - libharfbuzz-dev
+      - libacl1-dev
+      - libgpm-dev
+      - git
+      - autoconf
+      - texinfo
+      - libtool-bin
+      - automake
+      - gnutls-bin
+      - libgccjit0
+      - libgccjit-12-dev
+    state: present
+    update_cache: yes
+
+# - name: Clone Emacs source code
+#   git:
+#     repo: "{{ emacs_src_url }}"
+#     dest: "/tmp/emacs-{{ emacs_version }}"
+#     version: "master"
+#     depth: 1
+#     update: yes
+
+- name: Download Emacs source code
+  get_url:
+    url: "{{ emacs_src_url }}"
+    dest: "/tmp/emacs-{{ emacs_version }}.tar.xz"
+
+- name: Extract Emacs source code
+  unarchive:
+    src: "/tmp/emacs-{{ emacs_version }}.tar.xz"
+    dest: "/tmp"
+    remote_src: yes
+
+- name: Run autogen.sh
+  command: ./autogen.sh
+  args:
+    chdir: "/tmp/emacs-{{ emacs_version }}"
+
+- name: Configure Emacs build
+  command: "./configure --prefix={{ emacs_install_dir }} {{ emacs_configure_options }}"
+  args:
+    chdir: "/tmp/emacs-{{ emacs_version }}"
+
+- name: Compile Emacs
+  command: "make -j{{ emacs_build_processes | default(1) }}"
+  args:
+    chdir: "/tmp/emacs-{{ emacs_version }}"
+
+- name: Install Emacs
+  command: make install
+  become: true
+  args:
+    chdir: "/tmp/emacs-{{ emacs_version }}"
+
+- name: Clean up Emacs source code directory
+  file:
+    path: "/tmp/emacs-{{ emacs_version }}"
+    state: absent

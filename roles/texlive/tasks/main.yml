@@ -1,0 +1,112 @@
+---
+- name: Ensure required packages are installed
+  apt:
+    name: wget
+    state: present
+  become: true
+
+- name: Download TeX Live installer script
+  get_url:
+    url: https://mirror.ctan.org/systems/texlive/tlnet/install-tl-unx.tar.gz
+    dest: /tmp/install-tl-unx.tar.gz
+    mode: '0644'
+
+- name: Extract TeX Live installer script
+  unarchive:
+    src: /tmp/install-tl-unx.tar.gz
+    dest: /tmp
+    remote_src: yes
+
+- debug:
+    msg: "Architecture: {{ ansible_architecture }}, Kernel: {{ ansible_kernel }}, Distribution: {{ ansible_distribution }}, LSB Codename: {{ ansible_lsb['codename'] }}"
+  tags: debug
+
+- name: Detect architecture
+  set_fact:
+    texlive_arch: "{{ 'armhf-linux' if ansible_architecture in ['armv7l', 'armv6l'] else 'aarch64-linux' if ansible_architecture == 'aarch64' else 'i386-linux' if ansible_architecture == 'x86_64' and ansible_distribution in ['Ubuntu', 'Debian'] and ansible_lsb['codename'] in ['xenial', 'bionic', 'focal'] else 'x86_64-linux' }}"
+
+- name: Find the extracted installer directory
+  find:
+    paths: /tmp
+    patterns: 'install-tl-*'
+    file_type: directory
+  register: install_dir
+
+- name: Extract TeX Live version year from directory name
+  set_fact:
+    texlive_year: "{{ install_dir.files[0].path | regex_search('install-tl-(\\d{4})', '\\1') | first }}"
+
+- name: Create a custom TeX Live profile for minimal installation
+  copy:
+    dest: /tmp/texlive.profile
+    content: |
+      TEXDIR /usr/local/texlive/{{ texlive_year }}
+      TEXMFCONFIG ~/.texlive{{ texlive_year }}/texmf-config
+      TEXMFVAR ~/.texlive{{ texlive_year }}/texmf-var
+      collection-basic 1
+      collection-latex 1
+      collection-latexrecommended 1
+      collection-xetex 1
+      collection-fontsrecommended 1
+      option_doc 0
+      option_src 0
+
+- name: Check if a TeX Live installation of the same version year exists
+  stat:
+    path: "/usr/local/texlive/{{ texlive_year }}"
+  register: texlive_path
+
+- name: Run the TeX Live installer with the custom profile
+  command: ./install-tl --profile=/tmp/texlive.profile --no-interaction
+  args:
+    chdir: "{{ install_dir.files[0].path }}"
+  become: true
+  become_user: 'root'
+  when: not texlive_path.stat.exists
+
+- name: Add TeX Live to PATH
+  lineinfile:
+    path: /etc/profile.d/texlive.sh
+    line: "export PATH=/usr/local/texlive/{{ texlive_year }}/bin/{{ texlive_arch }}:$PATH"
+    create: yes
+  become: true
+  when: not texlive_path.stat.exists
+
+- name: Check if texmf user tree already exists
+  stat:
+    path: "/home/{{ ansible_user }}/texmf"
+  register: texmf_path
+
+# FIXME: falhou aqui:
+
+- name: Initialize the texmf user tree
+  become: false
+  shell: >
+    /usr/local/texlive/{{ texlive_year }}/bin/{{ texlive_arch }}/tlmgr init-usertree
+  when: not texmf_path.stat.exists
+  tags: tlmgr
+
+- name: Ensure tlmgr backup directory exists
+  file:
+    path: "/usr/local/texlive/{{ texlive_year }}/tlpkg/backups"
+    state: directory
+    mode: '0755'
+  become: true
+  tags: tlmgr
+
+- name: Update TeXlive
+  become: true
+  shell: >
+    export PATH=/usr/local/texlive/{{ texlive_year }}/bin/{{ texlive_arch }}:$PATH &&
+    tlmgr update --self --all &&
+    tlmgr update --list
+  tags: tlmgr
+
+- name: Install TeX packages
+  become: true
+  shell: >
+    export PATH=/usr/local/texlive/{{ texlive_year }}/bin/{{ texlive_arch }}:$PATH &&
+    tlmgr install {{ ' '.join(latex_packages) }}
+  tags: tlmgr
+
+

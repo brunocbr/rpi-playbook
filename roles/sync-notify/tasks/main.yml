@@ -1,0 +1,46 @@
+---
+# - name: Copy sync_notify.sh script to the user's home directory
+#   copy:
+#     src: sync_notify.sh
+#     dest: /home/{{ ansible_user }}/sync_notify.sh
+#     mode: '0755'
+#   tags: sync-notify
+
+- name: Create user bin directory
+  file:
+    path: "/home/{{ ansible_user }}/bin"
+    state: directory
+    owner: "{{ ansible_user_id }}"
+    group: "{{ ansible_user_id }}"
+    mode: '0755'
+
+- name: Create sync-notify script
+  copy:
+    dest: "/home/{{ ansible_user }}/bin/sync_notify.sh"
+    content: |
+      #!/bin/bash
+
+      while [ "$((/usr/bin/seaf-cli status 2>/dev/null || echo failure) | awk '/^Notas/ { print $2 }')" != "synchronized" ] ; do
+      	sleep 5
+      done
+
+      APP_TOKEN="{{ pushover_app_token }}"
+      USER_KEY="{{ pushover_user_key }}"
+      HOST=$(hostname)
+
+      curl -s \
+      	--form-string "token=${APP_TOKEN}" \
+      	--form-string "user=${USER_KEY}" \
+      	--form-string "message=${HOST}: As notas estão sincronizadas" \
+        --max-time 10 \
+      	https://api.pushover.net/1/messages.json >/dev/null
+    owner: "{{ ansible_user }}"
+    mode: '0755'
+
+- name: Add cron job to run the script on reboot
+  cron:
+    name: "Run sync_notify script on reboot"
+    user: "{{ ansible_user }}"
+    special_time: reboot
+    job: "/home/{{ ansible_user }}/bin/sync_notify.sh"
+  tags: sync-notify
