@@ -89,10 +89,71 @@ ansible-playbook playbook.yml --limit orion
 
 This will limit the playbook execution to only the `orion` host defined in your inventory file.
 
+## Example `credentials.yml`
+
+Here’s an example of what your `credentials.yml` file should look like. This file stores sensitive information, such as passwords and network credentials, and should be kept secure. Make sure to protect it by restricting access permissions and avoid sharing it publicly.
+
+```yaml
+# Seafile configuration
+seafile_password: "your_seafile_password"
+
+# GitHub credentials for cloning private repositories
+github_username: "your_github_username"
+github_password: "your_github_password"
+
+# Pushover credentials for sending notifications
+pushover_app_token: "your_pushover_app_token"
+pushover_user_key: "your_pushover_user_key"
+
+# Wi-Fi networks configuration
+wifi_networks:
+  - name: home
+    ssid: "your_home_wifi_ssid"
+    psk: "your_home_wifi_password"
+  - name: travel
+    ssid: "your_travel_wifi_ssid"
+    psk: "your_travel_wifi_password"
+  - name: phone
+    ssid: "your_phone_wifi_ssid"
+    psk: "your_phone_wifi_password"
+
+# Wi-Fi Access Point password
+wifi_access_point_psk: "your_access_point_password"
+
+# NAS (Network-Attached Storage) configuration
+nas_user: "your_nas_username"
+nas_password: "your_nas_password"
+nas_host: "your_nas_host_address"
+```
+
+### Important Notes:
+- Ensure the file is stored securely and not shared.
+- Use proper file permissions (`chmod 600 credentials.yml`) to prevent unauthorized access.
+
+### Encrypting Credentials with Ansible Vault
+
+To further secure sensitive information, Ansible provides a way to encrypt the `credentials.yml` file using **Ansible Vault**. This allows you to encrypt and decrypt files containing confidential data, keeping your credentials safe even if the file is shared or stored in version control. You can encrypt the file with the following command:
+
+```bash
+ansible-vault encrypt credentials.yml
+```
+
+To edit the encrypted file later, use:
+
+```bash
+ansible-vault edit credentials.yml
+```
+
+And to run the playbook with an encrypted file, simply provide the vault password:
+
+```bash
+ansible-playbook playbook.yml --ask-vault-pass
+```
+
 ## License
 
 MIT License
 
 ## Author
 
-Prof. Bruno Loureiro Conte
+Bruno Loureiro Conte
