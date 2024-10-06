@@ -63,6 +63,13 @@
     - { role: profile-links, tags: [git-pvt-repo, profile-links, profile] }
 
 
+    ################
+    # Presentation #
+    ################
+
+    - { role: revealjs, tags: [revealjs], revealjs_http_port: '8001' }
+    - { role: kiosk, tags: [kiosk], kiosk_url: "http://localhost:8001" }
+
     ############
     # Routines #
     ############

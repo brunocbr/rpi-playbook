@@ -1,0 +1,57 @@
+---
+- name: Install NodeJS and npm
+  apt:
+    name:
+      - nodejs
+      - npm
+    state: present
+
+- git:
+    repo: "https://github.com/hakimel/reveal.js.git"
+    dest: "{{ home_directory}}/src/reveal.js"
+    update: yes
+
+- name: Install Reveal.JS
+  command:
+    cmd: npm install
+    chdir: "{{ home_directory }}/src/reveal.js"
+
+# Adding systemd service for RevealJS
+
+- name: Create systemd service file for RevealJS
+  copy:
+    dest: /etc/systemd/system/revealjs.service
+    content: |
+      [Unit]
+      Description=RevealJS Presentation Server
+      After=network.target
+
+      [Service]
+      ExecStart=/usr/bin/npm start -- --port={{ revealjs_http_port | default('8001') }}
+      WorkingDirectory={{ home_directory }}/src/reveal.js
+      Restart=always
+      User={{ ansible_user }}
+
+      [Install]
+      WantedBy=multi-user.target
+
+- name: Ensure ownership of Reveal.JS directory and its contents
+  file:
+    path: "{{ home_directory }}/src/reveal.js"
+    state: directory
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    recurse: yes
+
+- name: Reload systemd daemon to recognize new service
+  command: systemctl daemon-reload
+
+- name: Enable RevealJS service to start on boot
+  systemd:
+    name: revealjs
+    enabled: yes
+
+- name: Start RevealJS service
+  systemd:
+    name: revealjs
+    state: started
