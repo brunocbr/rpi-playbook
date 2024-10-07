@@ -1,0 +1,67 @@
+---
+- name: Check if default .Xmodmap exists
+  stat:
+    path: "/home/{{ ansible_user }}/.Xmodmap"
+  register: xmodmap_exists
+
+- name: Create Xmodmap configuration file if it doesn't exist
+  copy:
+    dest: "/home/{{ ansible_user }}/.Xmodmap"
+    content: |
+      !
+      ! Swap Caps_Lock and Control_L
+      !
+      remove Lock = Caps_Lock
+      remove Control = Control_L
+      remove Lock = Control_L
+      remove Control = Caps_Lock
+      keysym Control_L = Caps_Lock
+      keysym Caps_Lock = Control_L
+      add Lock = Caps_Lock
+      add Control = Control_L
+
+      ! Invert Super and Meta
+      remove Mod4 = Super_L Super_R
+      remove Mod1 = Meta_L Meta_R
+      keysym Super_L = Meta_L
+      keysym Super_R = Meta_R
+      keysym Meta_L = Super_L
+      keysym Meta_R = Super_R
+      add Mod4 = Meta_L Meta_R
+      add Mod1 = Super_L Super_R
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: '0644'
+  when: not xmodmap_exists.stat.exists
+
+- name: Ensure Xmodmap is loaded at startup in .xinitrc
+  lineinfile:
+    path: "/home/{{ ansible_user }}/.xinitrc"
+    line: |
+      if [ -f "$HOME/.Xmodmap" ]; then
+        xmodmap "$HOME/.Xmodmap"
+      fi
+    create: yes
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: '0755'
+
+- name: Create i3 configuration file for the keymap
+  copy:
+    dest: "/home/{{ ansible_user }}/.config/i3/keymap.conf"
+    content: |
+      exec --no-startup-id xmodmap "$HOME/.Xmodmap"
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: 0644
+
+- name: Ensure keymap config is included in i3 config
+  lineinfile:
+    path: "/home/{{ ansible_user }}/.config/i3/config"
+    line: 'include "/home/{{ ansible_user }}/.config/i3/keymap.conf"'
+    insertafter: EOF
+    regexp: '^include\s+".*keymap\.conf"$'
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: 0644
+

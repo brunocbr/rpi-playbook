@@ -52,7 +52,7 @@
     - { role: texlive, tags: [text, texlive] }
     - { role: pandoc, tags: [text, pandoc], pandoc_version: '3.4' }
     - { role: zettel-composer, tags: [text, zettel-composer] }
-    - { role: premarkable, tags: [text, premarkable] }
+    - { role: premarkable, tags: [text, premarkable], premarkable_http_port: "8082" }
 
     ################
     # My git stuff #
@@ -68,7 +68,8 @@
     ################
 
     - { role: revealjs, tags: [revealjs], revealjs_http_port: '8001' }
-    - { role: kiosk, tags: [kiosk], kiosk_url: "http://localhost:8001" }
+    - { role: kiosk, tags: [gui, kiosk], kiosk_url: "http://localhost:8001" }
+    - { role: key-config, tags: [gui, key-config] }
 
     ############
     # Routines #
