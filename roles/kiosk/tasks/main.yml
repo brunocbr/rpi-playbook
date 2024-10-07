@@ -9,6 +9,7 @@
       - lightdm
     state: present
 
+
 - name: Create i3 config directory
   file:
     path: /home/{{ ansible_user }}/.config/i3
@@ -17,11 +18,26 @@
     group: "{{ ansible_user }}"
     mode: 0755
 
-- name: Configure i3 to launch Chromium in kiosk mode
+- name: Check if i3 default config exists
+  stat:
+    path: "/home/{{ ansible_user }}/.config/i3/config"
+  register: i3_config
+
+- name: Copy default i3 config if it doesn't exist
   copy:
-    dest: /home/{{ ansible_user }}/.config/i3/config
+    src: /etc/i3/config
+    dest: "/home/{{ ansible_user }}/.config/i3/config"
+    remote_src: yes
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: 0644
+  when: not i3_config.stat.exists
+
+- name: Create a separate configuration file for launching Chromium in kiosk mode
+  copy:
+    dest: /home/{{ ansible_user }}/.config/i3/kiosk.conf
     content: |
-      # i3 config file
+      # i3 custom config for kiosk mode
       # Disable workspace switching
       bindsym $mod+Shift+q exec --no-startup-id "pkill X"
 
@@ -38,7 +54,17 @@
 
     owner: "{{ ansible_user }}"
     group: "{{ ansible_user }}"
-    mode: 0755
+    mode: 0644
+
+- name: Ensure custom kiosk config is included in i3 config
+  lineinfile:
+    path: "/home/{{ ansible_user }}/.config/i3/config"
+    line: 'include "/home/{{ ansible_user }}/.config/i3/kiosk.conf"'
+    insertafter: EOF
+    regexp: '^include\s+".*kiosk\.conf"$'
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: 0644
 
 
 # - name: Set up i3 as the default window manager
@@ -127,4 +153,3 @@
     src: /usr/lib/systemd/system/graphical.target
     dest: /etc/systemd/system/default.target
     state: link
-  tags: xxx
