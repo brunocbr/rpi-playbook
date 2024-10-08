@@ -283,7 +283,7 @@ It should only modify the values of Spacemacs settings."
    ;; a non-negative integer (pixel size), or a floating-point (point size).
    ;; Point size is recommended, because it's device independent. (default 10.0)
    dotspacemacs-default-font '("DejaVu Sans Mono"
-                               :size 15.0
+                               :size 12.0
                                :weight normal
                                :width normal)
 
@@ -610,20 +610,20 @@ configuration.
 Put your configuration code here, except for variables that should be set
 before packages are loaded."
 
-;;  (load "~/new-emacs-config.el") ;; => desabilitado em 2020-06-03 para teste
+  ;;  (load "~/new-emacs-config.el") ;; => desabilitado em 2020-06-03 para teste
   (spacemacs/toggle-highlight-current-line-globally-off)
-;;  (spacemacs/toggle-automatic-symbol-highlight-off)
+  ;;  (spacemacs/toggle-automatic-symbol-highlight-off)
                                         ; (global-auto-revert-mode)
   (setq mac-right-option-modifier 'none)
   (global-set-key (kbd "s-u") 'revert-buffer)
   (setq-default major-mode 'markdown-mode)
-;;  (spacemacs/toggle-mode-line-minor-modes-off)
+  ;;  (spacemacs/toggle-mode-line-minor-modes-off)
 
   (add-hook 'org-mode-hook (lambda ()
                              (visual-line-mode)
                              (org-link-phi-register-link-types)))
 
-    ;; Spell-checking
+  ;; Spell-checking
   (setq-default dotspacemacs-configuration-layers
                 '((spell-checking :variables spell-checking-enable-by-default nil)))
   (setq-default dotspacemacs-configuration-layers
@@ -639,7 +639,7 @@ before packages are loaded."
           (call-process "open" nil 0 nil "-a" "/Applications/Skim.app" fpath)))
   (setq helm-bibtex-full-frame nil)
   (unless (display-graphic-p)
-  ;; activate mouse-based scrolling
+    ;; activate mouse-based scrolling
     (xterm-mouse-mode 1)
     (global-set-key (kbd "<mouse-4>") 'scroll-down-line)
     (global-set-key (kbd "<mouse-5>") 'scroll-up-line)
@@ -647,13 +647,13 @@ before packages are loaded."
   (yas-global-mode)
   (setq-default mac-system-move-file-to-trash-use-finder nil)
 
-;; nrepl via tramp
+  ;; nrepl via tramp
   (setq nrepl-use-ssh-fallback-for-remote-hosts t)
   (setq enable-remote-dir-locals t) ;; para projetos remotos
 
-  
+
   ;; so lame...
-;;  (set-fontset-font t 'greek (font-spec :family "iA Writer Duo V"))
+  ;;  (set-fontset-font t 'greek (font-spec :family "iA Writer Duo V"))
 
   ;; imenu
   (global-set-key (kbd "C-.") #'imenu-list-smart-toggle)
@@ -673,41 +673,43 @@ before packages are loaded."
 This is an auto-generated function, do not modify its content directly, use
 Emacs customize menu instead.
 This function is called at the very end of Spacemacs initialization."
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(evil-want-Y-yank-to-eol nil)
- '(fill-column 68)
- '(org-todo-keyword-faces '(("STARTED" . "White")))
- '(package-selected-packages
-   '(yaml-mode evil-paredit paredit-everywhere sql-indent sqlup-mode cider-eval-sexp-fu eval-sexp-fu clj-refactor inflections multiple-cursors clojure-snippets company counsel-gtags counsel swiper ivy evil-cleverparens flycheck-clj-kondo flycheck-clojure flycheck-joker ggtags helm-cider helm-gtags kaocha-runner popwin sayid cider sesman spinner parseedn clojure-mode parseclj treemacs cfrs pfuture ace-window posframe org-modern space-doc help-fns+ holy-mode evil-evilified-state org-ref ox-pandoc citeproc string-inflection queue ht bibtex-completion parsebib helm-bibtexkey helm-bibtex request yasnippet modus-vivendi-theme modus-operandi-theme modus-themes smartparens which-key use-package treemacs-projectile treemacs-icons-dired toc-org real-auto-save quickrun pcre2el overseer org-superstar org-rich-yank org-present org-pomodoro org-mime org-download org-contrib org-cliplink olivetti nameless mmm-mode markdown-toc macrostep inspector hybrid-mode htmlize helm-xref helm-themes helm-swoop helm-projectile helm-org-rifle helm-org helm-mode-manager helm-make helm-flx helm-descbinds helm-ag gnuplot gh-md flycheck-package flycheck-elsa evil-org emr elisp-slime-nav elisp-def dotenv-mode diminish bind-map auto-compile ace-jump-helm-line))
- '(phi-repository-alist
-   '(("Phi" "/home/brunoc/phi/" "2508")
-     ("Alpha" "/home/brunoc/alpha/" "7000")
-     ("Diário" "/home/brunoc/seafile/Notas/Diário/" nil)))
- '(phi-sidebar-display-alist
-   '((side . left)
-     (window-width . 40)
-     (slot . -1)
-     (mode-line-format)))
- '(safe-local-variable-values
-   '((eval customize-set-variable 'cider-path-translations
-           (list
-            (cons "/tmp"
-                  (clojure-project-dir))
-            (cons "/root/.m2"
-                  (concat
-                   (clojure-project-dir)
-                   "../../.m2"))))))
- '(toggl-auth-token "407d829ac0f415a3c14d9e5c33bff1a8"))
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(markdown-italic-face ((t (:inherit italic :underline t :slant italic))))
- '(phi-sidebar-face ((t (:height 0.9))))
- '(trailing-whitespace ((t (:background "brightblack")))))
-)
+  (custom-set-variables
+   ;; custom-set-variables was added by Custom.
+   ;; If you edit it by hand, you could mess it up, so be careful.
+   ;; Your init file should contain only one such instance.
+   ;; If there is more than one, they won't work right.
+   '(evil-want-Y-yank-to-eol nil)
+   '(fill-column 68)
+   '(org-todo-keyword-faces '(("STARTED" . "White")))
+   '(package-selected-packages
+     '(zettel-compose yaml-mode evil-paredit paredit-everywhere sql-indent sqlup-mode cider-eval-sexp-fu eval-sexp-fu clj-refactor inflections multiple-cursors clojure-snippets company counsel-gtags counsel swiper ivy evil-cleverparens flycheck-clj-kondo flycheck-clojure flycheck-joker ggtags helm-cider helm-gtags kaocha-runner popwin sayid cider sesman spinner parseedn clojure-mode parseclj treemacs cfrs pfuture ace-window posframe org-modern space-doc help-fns+ holy-mode evil-evilified-state org-ref ox-pandoc citeproc string-inflection queue ht bibtex-completion parsebib helm-bibtexkey helm-bibtex request yasnippet modus-vivendi-theme modus-operandi-theme modus-themes smartparens which-key use-package treemacs-projectile treemacs-icons-dired toc-org real-auto-save quickrun pcre2el overseer org-superstar org-rich-yank org-present org-pomodoro org-mime org-download org-contrib org-cliplink olivetti nameless mmm-mode markdown-toc macrostep inspector hybrid-mode htmlize helm-xref helm-themes helm-swoop helm-projectile helm-org-rifle helm-org helm-mode-manager helm-make helm-flx helm-descbinds helm-ag gnuplot gh-md flycheck-package flycheck-elsa evil-org emr elisp-slime-nav elisp-def dotenv-mode diminish bind-map auto-compile ace-jump-helm-line))
+   '(phi-repository-alist
+     '(("phi" "/home/brunoc/phi/" "2508")
+       ("alpha" "/home/brunoc/alpha/" "7000")
+       ("diário" "/home/brunoc/seafile/Notas/Diário/" nil)))
+   '(phi-sidebar-display-alist
+     '((side . left)
+       (window-width . 40)
+       (slot . -1)
+       (mode-line-format)))
+   '(safe-local-variable-values
+     '((eval customize-set-variable 'cider-path-translations
+             (list
+              (cons "/tmp"
+                    (clojure-project-dir))
+              (cons "/root/.m2"
+                    (concat
+                     (clojure-project-dir)
+                     "../../.m2"))))))
+   '(toggl-auth-token "407d829ac0f415a3c14d9e5c33bff1a8")
+   '(zettel-compose-script-path "/usr/local/bin/zettel-compose"))
+  (custom-set-faces
+   ;; custom-set-faces was added by Custom.
+   ;; If you edit it by hand, you could mess it up, so be careful.
+   ;; Your init file should contain only one such instance.
+   ;; If there is more than one, they won't work right.
+   '(button ((t (:foreground "#00bcff" :underline nil))))
+   '(markdown-italic-face ((t (:inherit italic :slant italic))))
+   '(phi-sidebar-face ((t (:height 0.9))))
+   '(trailing-whitespace ((t (:background "brightblack")))))
+  )
