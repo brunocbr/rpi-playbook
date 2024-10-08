@@ -37,7 +37,8 @@
       ExecStart=/usr/local/bin/premarkable -S "{{ home_directory }}/src/profile/css/amblin II.css" \
                   {{ home_directory }}/Downloads/OUTPUT.md -P \
                   "/usr/bin/pandoc -f markdown -L {{ home_directory }}/.pandoc/noexport-subtrees.lua -s -C --template=lecture" \
-                  -w 840
+                  -w 840 \
+                  -p {{ premarkable_http_port | default(8082) }}
       Restart=on-failure
 
       [Install]
