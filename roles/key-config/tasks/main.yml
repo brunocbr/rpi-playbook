@@ -13,44 +13,45 @@
       !
       remove Lock = Caps_Lock
       remove Control = Control_L
-      remove Lock = Control_L
-      remove Control = Caps_Lock
       keysym Control_L = Caps_Lock
       keysym Caps_Lock = Control_L
       add Lock = Caps_Lock
       add Control = Control_L
 
-      ! Invert Super and Meta
-      remove Mod4 = Super_L Super_R
-      remove Mod1 = Meta_L Meta_R
-      keysym Super_L = Meta_L
-      keysym Super_R = Meta_R
-      keysym Meta_L = Super_L
-      keysym Meta_R = Super_R
-      add Mod4 = Meta_L Meta_R
-      add Mod1 = Super_L Super_R
+      ! Remove current mappings for Alt and Super keys
+      remove mod1 = Alt_L
+      remove mod4 = Super_L
+
+      ! Map Alt_L to Super and Super_L to Meta
+      keycode 64 = Super_L
+      keycode 133 = Meta_L
+
+      ! Add the new mappings
+      add mod1 = Meta_L
+      add mod4 = Super_L
     owner: "{{ ansible_user }}"
     group: "{{ ansible_user }}"
     mode: '0644'
   when: not xmodmap_exists.stat.exists
 
-- name: Ensure Xmodmap is loaded at startup in .xinitrc
-  lineinfile:
-    path: "/home/{{ ansible_user }}/.xinitrc"
-    line: |
-      if [ -f "$HOME/.Xmodmap" ]; then
-        xmodmap "$HOME/.Xmodmap"
-      fi
-    create: yes
-    owner: "{{ ansible_user }}"
-    group: "{{ ansible_user }}"
-    mode: '0755'
+# - name: Ensure Xmodmap is loaded at startup in .xinitrc
+#   lineinfile:
+#     path: "/home/{{ ansible_user }}/.xinitrc"
+#     line: |
+#       if [ -f "$HOME/.Xmodmap" ]; then
+#         xmodmap "$HOME/.Xmodmap"
+#       fi
+#     create: yes
+#     owner: "{{ ansible_user }}"
+#     group: "{{ ansible_user }}"
+#     mode: '0755'
 
+# FIXME: not working on startup; works with i3 reload (thus, using `exec_always` for now)
 - name: Create i3 configuration file for the keymap
   copy:
     dest: "/home/{{ ansible_user }}/.config/i3/keymap.conf"
     content: |
-      exec --no-startup-id xmodmap "$HOME/.Xmodmap"
+      exec_always --no-startup-id "/usr/bin/xmodmap $HOME/.Xmodmap"
     owner: "{{ ansible_user }}"
     group: "{{ ansible_user }}"
     mode: 0644
@@ -58,7 +59,7 @@
 - name: Ensure keymap config is included in i3 config
   lineinfile:
     path: "/home/{{ ansible_user }}/.config/i3/config"
-    line: 'include "/home/{{ ansible_user }}/.config/i3/keymap.conf"'
+    line: "include /home/{{ ansible_user }}/.config/i3/keymap.conf"
     insertafter: EOF
     regexp: '^include\s+".*keymap\.conf"$'
     owner: "{{ ansible_user }}"

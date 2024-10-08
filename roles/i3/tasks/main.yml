@@ -1,0 +1,68 @@
+---
+- name: Install X11, i3 and LightDM
+  apt:
+    name:
+      - xorg
+      - i3
+      - lightdm
+    state: present
+
+- name: Create i3 config directory
+  file:
+    path: /home/{{ ansible_user }}/.config/i3
+    state: directory
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: 0755
+
+- name: Check if i3 default config exists
+  stat:
+    path: "/home/{{ ansible_user }}/.config/i3/config"
+  register: i3_config
+
+# - name: Copy default i3 config if it doesn't exist
+#   copy:
+#     src: /etc/i3/config
+#     dest: "/home/{{ ansible_user }}/.config/i3/config"
+#     remote_src: yes
+#     owner: "{{ ansible_user }}"
+#     group: "{{ ansible_user }}"
+#     mode: 0644
+#   when: not i3_config.stat.exists
+
+- name: Create base i3 config if it doesn't exist
+  template:
+    src: config.j2
+    dest: "/home/{{ ansible_user }}/.config/i3/config"
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: 0644
+  vars:
+    mod_key: "{{ i3_mod_key | default('Mod1') }}"
+
+- name: Configure LightDM user-session in [Seat:*] section
+  blockinfile:
+    path: /etc/lightdm/lightdm.conf
+    marker: "# MANAGED BY ANSIBLE - i3"
+    block: |
+      user-session=i3
+    insertafter: '^\[Seat:\*\]'
+
+- name: Comment out existing user-session entries
+  lineinfile:
+    path: /etc/lightdm/lightdm.conf
+    regexp: '^(?!#).*user-session='
+    line: '#user-session='
+    state: present
+    backrefs: yes
+
+- name: Restart LightDM to apply changes
+  service:
+    name: lightdm
+    state: started
+
+- name: Change default target to graphical.target
+  file:
+    src: /usr/lib/systemd/system/graphical.target
+    dest: /etc/systemd/system/default.target
+    state: link
