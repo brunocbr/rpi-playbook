@@ -60,6 +60,12 @@ The playbook consists of the following roles and corresponding tags:
 - **`zettel-composer`**: Sets up [Zettel Composer](https://github.com/brunocbr/zettel-composer) for combining notes (`tags: text, zettel-composer`).
 - **`premarkable`**: Preview Markdown files on your browser using [premarkable](https://github.com/brunocbr/premarkable) (`tags: text, premarkable`).
 
+### GUI & Presentations
+- **`revealjs`**: Installs Reveal.js to serve presentation slides (`tags: revealjs`, configurable `revealjs_http_port`).
+- **`i3`**: Sets up the i3 Window Manager for the graphical environment (`tags: gui, i3`, configurable `i3_mod_key`).
+- **`key-config`**: Applies custom key mappings, such as setting Caps Lock as Control and swapping the Meta (Alt) and Super (Windows) keys (`tags: gui, key-config`).
+- **`kiosk`**: Configures the system for kiosk mode, automatically logging in and launching a full-screen browser that points to a specified URL (`tags: gui, kiosk`, configurable `kiosk_url`).
+
 ### Git Repositories
 - **`git-with-creds`**: Clones and manages private Git repositories (`tags: git-pvt-repo`, supports repositories like `bibs`, `profile-src`, `profile`).
 - **`profile-links`**: Configures profile links for the system (`tags: git-pvt-repo, profile-links, profile`).
