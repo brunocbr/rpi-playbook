@@ -67,16 +67,17 @@
     # Presentation & Gui #
     ######################
 
-    - { role: revealjs, tags: [revealjs], revealjs_http_port: '8001' }
     - { role: i3, tags: [gui, i3], i3_mod_key: 'Mod4' }
     - { role: key-config, tags: [gui, key-config] }
+    - { role: natural-scroll, tags: [gui, natural-scroll], device: 'MX Anywhere 2 Mouse' }
+    - { role: revealjs, tags: [revealjs], revealjs_http_port: '8001' }
     - { role: kiosk, tags: [gui, kiosk], kiosk_url: "http://localhost:8001" }
 
     #########
     # Fonts #
     #########
 
-    - { role: ia-duospace-font, tags: [fonts, ia-duospace] }
+    - { role: ia-duospace-font, tags: [gui, fonts, ia-duospace] }
 
     ############
     # Routines #

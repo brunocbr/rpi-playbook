@@ -1,0 +1,28 @@
+---
+- name: Add natural scroll to .xprofile
+  lineinfile:
+    path: "/home/{{ ansible_user }}/.xprofile"
+    line: xinput set-prop "{{ device }}" "libinput Natural Scrolling Enabled" 1
+    create: yes
+    state: present
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+
+- name: Create i3 configuration file for natural scrolling
+  copy:
+    dest: "/home/{{ ansible_user }}/.config/i3/natural_scroll.conf"
+    content: |
+      exec_always --no-startup-id xinput set-prop "{{ device }}" "libinput Natural Scrolling Enabled" 1
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: 0644
+
+- name: Ensure scolling config is included in i3 config
+  lineinfile:
+    path: "/home/{{ ansible_user }}/.config/i3/config"
+    line: "include /home/{{ ansible_user }}/.config/i3/natural_scroll.conf"
+    insertafter: EOF
+    regexp: '^include\s+".*keymap\.conf"$'
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: 0644
