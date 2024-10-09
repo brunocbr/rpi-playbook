@@ -10,11 +10,44 @@
     repo: "https://github.com/hakimel/reveal.js.git"
     dest: "{{ home_directory}}/src/reveal.js"
     update: yes
+  become: false
 
 - name: Install Reveal.JS
   command:
     cmd: npm install
     chdir: "{{ home_directory }}/src/reveal.js"
+  become: false
+
+- name: Install Yarn package manager
+  npm:
+    name: yarn
+    global: yes
+    state: present
+  become: true
+  tags: mermaid
+
+- name: Add mermaid via Yarn
+  command:
+    cmd: yarn add mermaid
+    chdir: "{{ home_directory }}/src/reveal.js"
+  become: false
+  tags: mermaid
+
+- name: Add reveal.js-mermaid-plugin via Yarn
+  command:
+    cmd: yarn add reveal.js-mermaid-plugin
+    chdir: "{{ home_directory }}/src/reveal.js"
+  become: false
+  tags: mermaid
+
+- name: Ensure Mermaid plugin is symlinked in the dist directory
+  file:
+    src: "{{ home_directory }}/src/reveal.js/node_modules/reveal.js-mermaid-plugin/plugin/mermaid"
+    dest: "{{ home_directory }}/src/reveal.js/plugin/mermaid"
+    state: link
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+  tags: mermaid
 
 # Adding systemd service for RevealJS
 
