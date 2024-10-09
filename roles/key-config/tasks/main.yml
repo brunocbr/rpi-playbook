@@ -1,57 +1,10 @@
 ---
-- name: Check if default .Xmodmap exists
-  stat:
-    path: "/home/{{ ansible_user }}/.Xmodmap"
-  register: xmodmap_exists
-
-- name: Create Xmodmap configuration file if it doesn't exist
-  copy:
-    dest: "/home/{{ ansible_user }}/.Xmodmap"
-    content: |
-      !
-      ! Swap Caps_Lock and Control_L
-      !
-      remove Lock = Caps_Lock
-      remove Control = Control_L
-      keysym Control_L = Caps_Lock
-      keysym Caps_Lock = Control_L
-      add Lock = Caps_Lock
-      add Control = Control_L
-
-      ! Remove current mappings for Alt and Super keys
-      remove mod1 = Alt_L
-      remove mod4 = Super_L
-
-      ! Map Alt_L to Super and Super_L to Meta
-      keycode 64 = Super_L
-      keycode 133 = Meta_L
-
-      ! Add the new mappings
-      add mod1 = Meta_L
-      add mod4 = Super_L
-    owner: "{{ ansible_user }}"
-    group: "{{ ansible_user }}"
-    mode: '0644'
-  when: not xmodmap_exists.stat.exists
-
-# - name: Ensure Xmodmap is loaded at startup in .xinitrc
-#   lineinfile:
-#     path: "/home/{{ ansible_user }}/.xinitrc"
-#     line: |
-#       if [ -f "$HOME/.Xmodmap" ]; then
-#         xmodmap "$HOME/.Xmodmap"
-#       fi
-#     create: yes
-#     owner: "{{ ansible_user }}"
-#     group: "{{ ansible_user }}"
-#     mode: '0755'
-
 # FIXME: not working on startup; works with i3 reload (thus, using `exec_always` for now)
 - name: Create i3 configuration file for the keymap
   copy:
     dest: "/home/{{ ansible_user }}/.config/i3/keymap.conf"
     content: |
-      exec_always --no-startup-id "/usr/bin/xmodmap $HOME/.Xmodmap"
+      exec_always --no-startup-id setxkbmap -option altwin:swap_alt_win,ctrl:nocaps
     owner: "{{ ansible_user }}"
     group: "{{ ansible_user }}"
     mode: 0644
