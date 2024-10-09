@@ -1,0 +1,22 @@
+---
+- name: Install font directory
+  file:
+    path: /usr/share/fonts/truetype/ia-duospace
+    state: directory
+    mode: '0755'
+
+- name: Copy iA Duospace fonts
+  copy:
+    src: "{{ item }}"
+    dest: /usr/share/fonts/truetype/ia-duospace/
+    mode: '0644'
+  loop:
+    - iAWriterDuoS-Bold.ttf
+    - iAWriterDuoS-BoldItalic.ttf
+    - iAWriterDuoS-Italic.ttf
+    - iAWriterDuoS-Regular.ttf
+    - iAWriterDuoV.ttf
+    - iAWriterDuoV-Italic.ttf
+
+- name: Update font cache
+  command: fc-cache -f -v
