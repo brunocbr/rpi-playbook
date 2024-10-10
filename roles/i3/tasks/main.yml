@@ -5,6 +5,7 @@
       - xorg
       - i3
       - lightdm
+      - rofi
     state: present
 
 - name: Create i3 config directory
@@ -19,16 +20,6 @@
   stat:
     path: "/home/{{ ansible_user }}/.config/i3/config"
   register: i3_config
-
-# - name: Copy default i3 config if it doesn't exist
-#   copy:
-#     src: /etc/i3/config
-#     dest: "/home/{{ ansible_user }}/.config/i3/config"
-#     remote_src: yes
-#     owner: "{{ ansible_user }}"
-#     group: "{{ ansible_user }}"
-#     mode: 0644
-#   when: not i3_config.stat.exists
 
 - name: Create base i3 config if it doesn't exist
   template:
