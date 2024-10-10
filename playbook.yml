@@ -78,6 +78,7 @@
     #########
 
     - { role: ia-duospace-font, tags: [gui, fonts, ia-duospace] }
+    - { role: eb-garamond-font, tags: [gui, fonts, eb-garamond] }
     - { role: rokkitt-font, tags: [gui, fonts, rokkitt] }
 
 

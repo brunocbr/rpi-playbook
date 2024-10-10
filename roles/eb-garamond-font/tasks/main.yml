@@ -1,0 +1,31 @@
+---
+- name: Ensure font directory exists
+  file:
+    path: /usr/local/share/fonts
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Copy EB Garamond fonts to system fonts directory
+  copy:
+    src: "{{ item }}"
+    dest: "/usr/local/share/fonts/{{ item }}"
+    owner: root
+    group: root
+    mode: '0644'
+  loop:
+    - EBGaramond-Bold.ttf
+    - EBGaramond-BoldItalic.ttf
+    - EBGaramond-ExtraBold.ttf
+    - EBGaramond-ExtraBoldItalic.ttf
+    - EBGaramond-Italic.ttf
+    - EBGaramond-Medium.ttf
+    - EBGaramond-MediumItalic.ttf
+    - EBGaramond-Regular.ttf
+    - EBGaramond-SemiBold.ttf
+    - EBGaramond-SemiBoldItalic.ttf
+
+- name: Refresh font cache
+  command: fc-cache -f -v
+
