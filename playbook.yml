@@ -78,6 +78,8 @@
     #########
 
     - { role: ia-duospace-font, tags: [gui, fonts, ia-duospace] }
+    - { role: rokkitt-font, tags: [gui, fonts, rokkitt] }
+
 
     ############
     # Routines #

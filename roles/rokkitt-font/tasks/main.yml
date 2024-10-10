@@ -1,0 +1,31 @@
+---
+- name: Ensure font directory exists
+  file:
+    path: /usr/local/share/fonts
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Copy Rokkitt fonts to system fonts directory
+  copy:
+    src: "{{ item }}"
+    dest: "/usr/local/share/fonts/{{ item }}"
+    owner: root
+    group: root
+    mode: '0644'
+  loop:
+    - Rokkitt-Italic-VariableFont_wght.ttf
+    - Rokkitt-VariableFont_wght.ttf
+
+- name: Refresh font cache
+  command: fc-cache -f -v
+
+- name: Verify Rokkitt font installation
+  shell: |
+    fc-list | grep -i "Rokkitt"
+  register: font_check
+
+- name: Output Rokkitt font installation status
+  debug:
+    msg: "{{ font_check.stdout }}"
