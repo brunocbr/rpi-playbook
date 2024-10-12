@@ -26,6 +26,13 @@
   become: true
   tags: mermaid
 
+- name: Add socket.io via Yarn
+  command:
+    cmd: yarn add socket.io
+    chdir: "{{ home_directory }}/src/reveal.js"
+  become: false
+  tags: socket-io
+
 - name: Add mermaid via Yarn
   command:
     cmd: yarn add mermaid
