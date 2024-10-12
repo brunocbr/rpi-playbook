@@ -15,7 +15,7 @@
     src: tmux.conf
     dest: "/etc/tmux.conf"
     mode: '0644'
-  tags: shell
+  tags: shell, tmux-conf
 
 - name: Install mosh
   apt:
