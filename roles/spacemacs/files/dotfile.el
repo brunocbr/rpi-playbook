@@ -80,6 +80,7 @@ This function should only modify configuration layer settings."
      bibtex
      olivetti
      zettel-compose
+     diogenes
      toggl
      treemacs
      )
