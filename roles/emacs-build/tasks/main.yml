@@ -24,6 +24,7 @@
       - gnutls-bin
       - libgccjit0
       - libgccjit-12-dev
+      - libsqlite3-dev
     state: present
     update_cache: yes
 
