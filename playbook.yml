@@ -67,6 +67,7 @@
     # Presentation & Gui #
     ######################
 
+    - { role: keyboard-layout, tags: [gui, keyboard-layout], kb_layout: "us", kb_variant: "intl" }
     - { role: i3, tags: [gui, i3], i3_mod_key: 'Mod4' }
     - { role: key-config, tags: [gui, key-config] }
     - { role: natural-scroll, tags: [gui, natural-scroll], device: 'MX Anywhere 2 Mouse' }

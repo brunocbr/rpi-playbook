@@ -1,0 +1,29 @@
+---
+- name: Configure system-wide keyboard layout to "{{ kb_layout | default('us') }}"
+  lineinfile:
+    path: /etc/default/keyboard
+    regexp: '^XKBLAYOUT'
+    line: 'XKBLAYOUT="{{ kb_layout | default("us") }}"'
+    state: present
+    backup: yes
+  become: yes
+
+- name: Set system-wide keyboard variant to "{{ kb_variant | default('intl') }}"
+  lineinfile:
+    path: /etc/default/keyboard
+    regexp: '^XKBVARIANT'
+    line: 'XKBVARIANT="{{ kb_variant | default("intl") }}"'
+    state: present
+    backup: yes
+  become: yes
+
+- name: Apply the new keyboard layout
+  command: setupcon
+  become: yes
+
+- name: Restart keyboard-setup service
+  service:
+    name: keyboard-setup
+    state: restarted
+  become: yes
+  when: ansible_service_mgr == "systemd"
