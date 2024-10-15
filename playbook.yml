@@ -72,6 +72,7 @@
     - { role: natural-scroll, tags: [gui, natural-scroll], device: 'MX Anywhere 2 Mouse' }
     - { role: revealjs, tags: [revealjs], revealjs_http_port: '8001' }
     - { role: kiosk, tags: [gui, kiosk], kiosk_url: "http://localhost:8001" }
+    - { role: uxplay, tags: [gui, uxplay] }
 
     #########
     # Fonts #

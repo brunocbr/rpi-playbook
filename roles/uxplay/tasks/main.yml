@@ -1,0 +1,29 @@
+---
+- name: Install uxplay and dependencies
+  apt:
+    name:
+      - uxplay
+      - gstreamer1.0-plugins-base
+      - gstreamer1.0-libav
+      - gstreamer1.0-plugins-good
+      - gstreamer1.0-plugins-bad
+    state: present
+
+- name: Create i3 configuration for uxplay
+  copy:
+    dest: "/home/{{ ansible_user }}/.config/i3/uxplay.conf"
+    content: |
+      exec --no-startup-id uxplay -fs -bt709 -nohold
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: 0644
+
+- name: Ensure uxplay config is included in main i3 config
+  lineinfile:
+    path: "/home/{{ ansible_user }}/.config/i3/config"
+    line: "include /home/{{ ansible_user }}/.config/i3/uxplay.conf"
+    insertafter: EOF
+    regexp: '^include\s+".*uxplay\.conf"$'
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: 0644
