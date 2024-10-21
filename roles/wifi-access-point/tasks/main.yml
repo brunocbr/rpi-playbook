@@ -115,10 +115,11 @@
 
       # Check if connected to any Wi-Fi network
       current_connection=$(nmcli -t -f NAME,TYPE,DEVICE con show --active | grep wlan0 | awk -F':' '{print $1}')
-      usb_interface_running=$(ifconfig usb0 2>/dev/null | grep -o "RUNNING")
+      usb_interface_running=$(/usr/sbin/ifconfig usb0 2>/dev/null | grep -o "RUNNING")
 
       if [ "$usb_interface_running" == "RUNNING" ] ; then
-      	echo "Connected via USB."
+        echo "Connected via USB. Turning off the lights."
+        echo 0 > /sys/class/leds/ACT/brightness
         exit 0
       fi
 
