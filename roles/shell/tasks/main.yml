@@ -35,4 +35,14 @@
     state: present
   tags: shell
 
+- name: Install tools
+  copy:
+    src: "{{ item }}"
+    dest: "/usr/local/bin/{{ item }}"
+    mode: '0755'
+  loop:
+    - led_on
+    - led_off
+  tags: shell-tools
+
 
