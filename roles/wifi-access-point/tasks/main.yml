@@ -120,6 +120,11 @@
       if [ "$usb_interface_running" == "RUNNING" ] ; then
         echo "Connected via USB. Turning off the lights."
         echo 0 > /sys/class/leds/ACT/brightness
+
+        if [ -z "$current_connection" ]; then
+          echo "No wifi network connected. Turning off the radio."
+          nmcli radio wifi off
+        fi
         exit 0
       fi
 
