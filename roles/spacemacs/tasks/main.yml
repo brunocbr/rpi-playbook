@@ -38,6 +38,7 @@
     src: dotfile.el
     dest: "/home/{{ spacemacs_user }}/.spacemacs"
     mode: '0644'
+  tags: dot-spacemacs
 
 # - name: Clone phi layer from private repository
 #   git:

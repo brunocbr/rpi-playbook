@@ -704,6 +704,7 @@ This function is called at the very end of Spacemacs initialization."
                      (clojure-project-dir)
                      "../../.m2"))))))
    '(toggl-auth-token "407d829ac0f415a3c14d9e5c33bff1a8")
+   '(ispell-program-name "/usr/bin/aspell")
    '(zettel-compose-script-path "/usr/local/bin/zettel-compose"))
   (custom-set-faces
    ;; custom-set-faces was added by Custom.

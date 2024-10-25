@@ -1,0 +1,17 @@
+---
+- name: Instalar o Aspell
+  apt:
+    name: aspell
+    state: present
+  become: yes
+
+- name: Instalar dicionários adicionais para o Aspell
+  apt:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - aspell-pt-br
+    - aspell-en
+    - aspell-fr
+  become: yes
+
