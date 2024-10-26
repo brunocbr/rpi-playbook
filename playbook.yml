@@ -37,6 +37,7 @@
     - { role: emacs-build, tags: [emacs, emacs-build], emacs_version: '29.4' }
     - { role: spacemacs, tags: [emacs, spacemacs] }
     - { role: tmux-service, tags: [emacs, tmux-service] }
+    - { role: aspell, tags: [emacs, aspell] }
 
     ######################
     # Diogenes & the TLG #
