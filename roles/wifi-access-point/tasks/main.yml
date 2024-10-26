@@ -90,69 +90,13 @@
   service: name=dnsmasq state=started enabled=yes
   tags: dnsmasq
 
-# - name: Create the network check script
-#   copy:
-#     dest: /usr/local/bin/network-check.sh
-#     content: |
-#       #!/bin/bash
-#       available_networks=$(nmcli -t -f active,ssid dev wifi | grep -E '^yes')
-#       if [ -z "$available_networks" ]; then
-#           echo "No known networks found. Activating Access Point..."
-#           nmcli con up ap-mode
-#       else
-#           echo "Connected to a known network."
-#       fi
-#     mode: '0755'
-#   become: true
-
 - name: Create the network check script
-  copy:
+  template:
     dest: /usr/local/bin/network-check.sh
-    content: |
-      #!/bin/bash
-      # List of known networks from the Ansible wifi_networks variable
-      known_networks=( {{ wifi_networks | map(attribute='ssid') | map('quote') | join(' ') }} )
-
-      # Check if connected to any Wi-Fi network
-      current_connection=$(nmcli -t -f NAME,TYPE,DEVICE con show --active | grep wlan0 | awk -F':' '{print $1}')
-      usb_interface_running=$(/usr/sbin/ifconfig usb0 2>/dev/null | grep -o "RUNNING")
-
-      if [ "$usb_interface_running" == "RUNNING" ] ; then
-        echo "Connected via USB. Turning off the lights."
-        echo 0 > /sys/class/leds/ACT/brightness
-
-        if [ -z "$current_connection" ]; then
-          echo "No wifi network connected. Turning off the radio."
-          nmcli radio wifi off
-        fi
-        exit 0
-      fi
-
-      # If there is no current connection or in access point mode
-      if [ -z "$current_connection" ] || [ "$current_connection" == "ap-mode" ]; then
-          # Scan available networks
-          available_networks=$(nmcli -t -f ssid dev wifi | grep -v '^$')
-
-          for ssid in "${known_networks[@]}"; do
-              # Check if any known network is available
-              if echo "$available_networks" | grep -q "$ssid"; then
-                  echo "Known network $ssid found, connecting..."
-                  nmcli con up "$ssid"
-                  exit 0
-              fi
-          done
-
-          if [ -z "$current_connection" ] && [ -z "$usb_interface_running" ]; then
-          		echo "No known networks found. Activating Access Point..."
-              nmcli con up ap-mode
-          fi
-      else
-          echo "Connected to $current_connection."
-      fi
+    src: network-check.sh.j2
     mode: '0755'
   become: true
   tags: netcheck-script
-
 
 - name: Create a systemd service to check for known networks
   copy:
