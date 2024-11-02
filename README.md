@@ -72,6 +72,9 @@ The playbook consists of the following roles and corresponding tags:
 - **`git-with-creds`**: Clones and manages private Git repositories (`tags: git-pvt-repo`, supports repositories like `bibs`, `profile-src`, `profile`).
 - **`profile-links`**: Configures profile links for the system (`tags: git-pvt-repo, profile-links, profile`).
 
+### AI
+- **`llamaindex`**: Installs LlamaIndex (formerly GPT Index) and configures it to use the `text-embedding-3-small` model from OpenAI for text embeddings.
+
 ### Power Management
 - **`poweroff`**: Sets up routines for powering off the system (`tags: poweroff`).
 

@@ -1,0 +1,56 @@
+---
+- name: Ensure python3-venv and pip are installed
+  apt:
+    name:
+      - python3-venv
+      - python3-pip
+    state: present
+  become: yes
+
+- name: Create virtual environment if it doesn't exist
+  command: python3 -m venv {{ venv_path }}
+  args:
+    creates: "{{ venv_path }}/bin/activate"
+  become: no
+
+- name: Install required Python packages in the virtual environment
+  pip:
+    name:
+      - openai
+      - llama-index
+      - llama-index-vector-stores-chroma
+      - llama-index-embeddings-huggingface
+      - chromadb
+      - sentence-transformers
+      - bibtexparser
+    virtualenv: "{{ venv_path }}"
+  become: no
+
+- name: Ensure directory for LlamaIndex config exists
+  file:
+    path: "{{ home_directory }}/.llamaindex"
+    state: directory
+    mode: '0755'
+  become: no
+
+- name: Create a configuration file for LlamaIndex
+  template:
+    src: llamaindex_config.j2
+    dest: "{{ home_directory }}/.llamaindex/config.yaml"
+    mode: '0644'
+  become: no
+
+- name: Set OpenAI API key in environment variables
+  lineinfile:
+    path: "{{ home_directory }}/.bashrc"
+    line: 'export OPENAI_API_KEY="{{ openai_api_key }}"'
+    create: yes
+  become: no
+
+# - name: Add activation of virtual environment to .bashrc
+#   lineinfile:
+#     path: "{{ home_directory }}/.bashrc"
+#     line: 'source {{ venv_path }}/bin/activate'
+#     create: yes
+#   become: no
+

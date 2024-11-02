@@ -1,0 +1,6 @@
+---
+# Define the path to the virtual environment
+# venv_path: "/home/{{ ansible_user }}/llamaindex-venv"
+
+# Define OpenAI API key for authentication
+# openai_api_key: "your_openai_api_key_here"
