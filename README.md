@@ -72,7 +72,8 @@ The playbook consists of the following roles and corresponding tags:
 - **`git-with-creds`**: Clones and manages private Git repositories (`tags: git-pvt-repo`, supports repositories like `bibs`, `profile-src`, `profile`).
 - **`profile-links`**: Configures profile links for the system (`tags: git-pvt-repo, profile-links, profile`).
 
-### AI
+### AI & Data Science
+- **`jupyter-notebook`**: Installs Jupyter Notebook in a Python virtual environment and configures it as a systemd service for automatic startup.
 - **`llamaindex`**: Installs LlamaIndex (formerly GPT Index) and configures it to use the `text-embedding-3-small` model from OpenAI for text embeddings.
 
 ### Power Management
