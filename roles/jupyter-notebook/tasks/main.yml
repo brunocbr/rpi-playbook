@@ -1,0 +1,68 @@
+---
+- name: Ensure required packages are installed
+  apt:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - "{{ python_version }}-venv"
+    - "{{ python_version }}-pip"
+  become: yes
+
+- name: Create Jupyter virtual environment directory
+  file:
+    path: "{{ venv_path }}"
+    state: directory
+    mode: '0755'
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+  become: yes
+
+- name: Create Python virtual environment for Jupyter
+  command: "{{ python_version }} -m venv {{ venv_path }}"
+  args:
+    creates: "{{ venv_path }}/bin/activate"
+  become: no
+
+- name: Install Jupyter Notebook in virtual environment
+  pip:
+    virtualenv: "{{ venv_path }}"
+    name: jupyter
+
+- name: Verify Jupyter installation
+  command: "{{ venv_path }}/bin/jupyter --version"
+
+- name: Create Jupyter Notebooks directory
+  file:
+    path: "/home/{{ ansible_user }}/Notebooks"
+    state: directory
+    mode: '0755'
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+  become: no
+
+- name: Create a systemd service for Jupyter Notebook
+  copy:
+    dest: /etc/systemd/system/jupyter-notebook.service
+    content: |
+      [Unit]
+      Description=Jupyter Notebook
+      After=network.target
+
+      [Service]
+      Type=simple
+      ExecStart={{ venv_path }}/bin/jupyter-notebook --ip=0.0.0.0 --no-browser
+      WorkingDirectory=/home/{{ ansible_user }}/Notebooks
+      User={{ ansible_user }}
+      Group={{ ansible_user }}
+      Restart=always
+
+      [Install]
+      WantedBy=multi-user.target
+  become: yes
+
+- name: Enable and start Jupyter service
+  systemd:
+    name: jupyter-notebook
+    enabled: yes
+    state: started
+  become: yes
