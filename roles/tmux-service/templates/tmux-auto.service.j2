@@ -7,7 +7,7 @@ After=tmux-master.service
 Type=oneshot
 RemainAfterExit=yes
 User={{ ansible_user }}
-ExecStart=/usr/bin/tmux new-session -d -s auto-session /usr/local/bin/emacs -nox
+ExecStart=/usr/bin/tmux new-session -d -s auto-session /usr/local/bin/emacs
 ExecStop=/usr/bin/tmux kill-session -t auto-session
 
 [Install]
