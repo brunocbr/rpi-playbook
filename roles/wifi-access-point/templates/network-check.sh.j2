@@ -10,6 +10,7 @@ usb_interface_running=$(/usr/sbin/ifconfig usb0 2>/dev/null | grep -o "RUNNING")
 if [ -z "$current_connection" ] || [ "$current_connection" == "ap-mode" ]; then
     # Scan available networks
     nmcli radio wifi on
+    sleep 5
     available_networks=$(nmcli -t -f ssid dev wifi | grep -v '^$')
 
     for ssid in "${known_networks[@]}"; do
@@ -30,7 +31,9 @@ fi
 
 if [ "$usb_interface_running" == "RUNNING" ] ; then
   echo "Connected via USB. Turning off the lights."
-  echo 0 > /sys/class/leds/ACT/brightness
+  for led in [ ACT PWR ]; do
+      [ -f /sys/class/leds/${led}/brightness ] && echo 0 >/sys/class/leds/${led}/brightness
+  done
 
   if [ -z "$current_connection" ]; then
   	echo "No wifi network connected. Turning off the radio."
