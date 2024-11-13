@@ -18,4 +18,5 @@ latex_packages:
   - sectsty
   - lipsum
   - titlepic
+  - syllogism
 
