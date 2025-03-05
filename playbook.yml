@@ -93,12 +93,13 @@
     - { role: jupyter-notebook, tags: [ai, jupyter-notebook]}
     - { role: llamaindex, tags: [ai, llamaindex]}
 
-    ####################
-    # External Storage #
-    ####################
+    #############################
+    # External Storage & Docker #
+    #############################
 
     - { role: external-storage, tags: [external-storage],
         volume_uuid: 'fbec5597-30c0-4e52-8d2d-bb8bd1d54ab3', mount_point: "/mnt/external" }
+    - { role: docker, tags: [docker], mount_point: "/mnt/external" }
 
     ############
     # Routines #

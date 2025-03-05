@@ -1,0 +1,93 @@
+- name: Ensure mount point exists
+  file:
+    path: "{{ mount_point }}"
+    state: directory
+    mode: '0755'
+
+- name: Install Docker
+  apt:
+    name: docker.io
+    state: present
+  become: yes
+
+- name: Install Docker Compose
+  apt:
+    name: docker-compose
+    state: present
+  become: yes
+
+
+- name: Check if external volume is mounted
+  command: mountpoint -q "{{ mount_point }}"
+  register: mount_check
+  ignore_errors: yes
+
+- name: Create Docker data directory on external volume
+  file:
+    path: "{{ mount_point }}/docker"
+    state: directory
+    mode: '0755'
+  become: yes
+  when: mount_check.rc == 0  # Only create if mounted
+
+- name: Configure Docker to use external volume
+  copy:
+    dest: /etc/docker/daemon.json
+    content: '{
+      "data-root": "{{ mount_point }}/docker"
+    }'
+    mode: '0644'
+    ensure: present  # Optional: ensures the content is present (creates if not exists)
+  become: yes
+  notify: Restart Docker
+  when: mount_check.rc == 0  # Only configure if mounted
+
+  
+- name: Create systemd service override for Docker
+  copy:
+    dest: /etc/systemd/system/docker.service
+    content: |
+      [Unit]
+      Description=Docker Application Container Engine
+      Documentation=https://docs.docker.com
+      After=network-online.target docker.socket firewalld.service containerd.service
+      Wants=network-online.target containerd.service
+      Requires=docker.socket
+      ConditionPathIsMountPoint={{ mount_point }}
+
+      [Service]
+      Type=notify
+      # the default is not to use systemd for cgroups because the delegate issues still
+      # exists and systemd currently does not support the cgroup feature set required
+      # for containers run by docker
+      EnvironmentFile=-/etc/default/docker
+      ExecStart=/usr/sbin/dockerd -H fd:// --containerd=/run/containerd/containerd.sock $DOCKER_OPTS
+      ExecReload=/bin/kill -s HUP $MAINPID
+      LimitNOFILE=1048576
+      # Having non-zero Limit*s causes performance problems due to accounting overhead
+      # in the kernel. We recommend using cgroups to do container-local accounting.
+      LimitNPROC=infinity
+      LimitCORE=infinity
+      # Uncomment TasksMax if your systemd version supports it.
+      # Only systemd 226 and above support this version.
+      TasksMax=infinity
+      TimeoutStartSec=0
+      # set delegate yes so that systemd does not reset the cgroups of docker containers
+      Delegate=yes
+      # kill only the docker process, not all processes in the cgroup
+      KillMode=process
+      # restart the docker process if it exits prematurely
+      Restart=on-failure
+      StartLimitBurst=3
+      StartLimitInterval=60s
+      
+      [Install]
+      WantedBy=multi-user.target
+  notify: Reload systemd
+
+- name: Start Docker service
+  systemd:
+    name: docker
+    state: started
+    enabled: yes
+  become: yes
