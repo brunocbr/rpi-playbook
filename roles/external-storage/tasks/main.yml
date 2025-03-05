@@ -8,7 +8,7 @@
 - name: Configure fstab to mount external volume
   lineinfile:
     path: /etc/fstab
-    line: 'UUID={{ volume_uuid }} {{ mount_point }} ext4 defaults,auto 0 2'
+    line: 'UUID={{ volume_uuid }} {{ mount_point }} ext4 defaults,nofail,auto 0 2'
     state: present
   notify: Remount partitions
 
