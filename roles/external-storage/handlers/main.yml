@@ -1,0 +1,4 @@
+---
+- name: Remount partitions
+  command: mount -a
+  become: yes

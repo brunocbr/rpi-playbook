@@ -1,0 +1,14 @@
+---
+- name: Ensure mount point exists
+  file:
+    path: "{{ mount_point }}"
+    state: directory
+    mode: '0755'
+
+- name: Configure fstab to mount external volume
+  lineinfile:
+    path: /etc/fstab
+    line: 'UUID={{ volume_uuid }} {{ mount_point }} ext4 defaults,auto 0 2'
+    state: present
+  notify: Remount partitions
+
