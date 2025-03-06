@@ -76,6 +76,10 @@ The playbook consists of the following roles and corresponding tags:
 - **`jupyter-notebook`**: Installs Jupyter Notebook in a Python virtual environment and configures it as a systemd service for automatic startup.
 - **`llamaindex`**: Installs LlamaIndex (formerly GPT Index) and configures it to use the `text-embedding-3-small` model from OpenAI for text embeddings.
 
+### External Storage & Docker
+- **`external-storage`**: (Auto)mounts an external storage when it is attached.
+- **`docker`**: Installs Docker and configures it to use the external storage for image storage, preventing the service from starting if the volume is not mounted.
+
 ### Power Management
 - **`poweroff`**: Sets up routines for powering off the system (`tags: poweroff`).
 
