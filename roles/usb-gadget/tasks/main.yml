@@ -41,25 +41,52 @@
     dest: /etc/dnsmasq.d/usb.conf
     content: |
       interface=usb0
-      dhcp-range=10.55.0.2,10.55.0.6,255.255.255.248,1h
+      dhcp-range=10.55.0.2,10.55.0.5,255.255.255.248,1h
       dhcp-option=3
       leasefile-ro
     mode: '0644'
   become: true
+  tags: usb-dnsmasq
 
-- name: Create /etc/network/interfaces.d/usb0 with static network configuration
-  copy:
-    dest: /etc/network/interfaces.d/usb0
-    content: |
-      auto usb0
-      allow-hotplug usb0
-      iface usb0 inet static
-        address 10.55.0.1
-        netmask 255.255.255.248
-    owner: root
-    group: root
-    mode: '0644'
+# - name: Create /etc/network/interfaces.d/usb0 with static network configuration
+#   copy:
+#     dest: /etc/network/interfaces.d/usb0
+#     content: |
+#       auto usb0
+#       allow-hotplug usb0
+#       iface usb0 inet static
+#         address 10.55.0.1
+#         netmask 255.255.255.248
+#     owner: root
+#     group: root
+#     mode: '0644'
+#   become: yes
+
+- name: Delete existing interfaces.d/usb0 configuration (if any)
+  file:
+    path: /etc/network/interfaces.d/usb0
+    state: absent
   become: yes
+
+- name: Ensure usb0 is managed by NetworkManager
+  command: nmcli device set usb0 managed yes
+  become: yes
+  ignore_errors: yes
+
+- name: Configure usb0 with static IP via nmcli
+  nmcli:
+    conn_name: usb0
+    ifname: usb0
+    type: ethernet
+    ip4: 10.55.0.1/29
+    state: present
+    autoconnect: yes
+  become: yes
+
+- name: Bring usb0 connection up
+  command: nmcli connection up usb0
+  become: yes
+
 
 - name: Create USB gadget script
   copy:

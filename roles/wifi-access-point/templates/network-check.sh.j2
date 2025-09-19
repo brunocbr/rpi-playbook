@@ -2,15 +2,39 @@
 # List of known networks from the Ansible wifi_networks variable
 known_networks=( {{ wifi_networks | map(attribute='ssid') | map('quote') | join(' ') }} )
 
-# Check if connected to any Wi-Fi network
-current_connection=$(nmcli -t -f NAME,TYPE,DEVICE con show --active | grep wlan0 | awk -F':' '{print $1}')
-usb_interface_running=$(/usr/sbin/ifconfig usb0 2>/dev/null | grep -o "RUNNING")
+# IP address for USB connection gateway (manually configured on host)
+gateway_ip="10.55.0.6"
+
+refresh_network_status() {
+    # Get the current Wi-Fi connection name (if any)
+    current_connection=$(nmcli -t -f NAME,TYPE,DEVICE con show --active | grep wlan0 | awk -F':' '{print $1}')
+
+    # Check if the usb0 interface is running
+    usb_interface_running=$(/usr/sbin/ifconfig usb0 2>/dev/null | grep -o "RUNNING")
+}
+
+refresh_network_status
+
+if [ -z "$usb_interface_running" ] ; then
+    # Try to bring usb0 up
+    nmcli con up usb0
+    refresh_network_status
+fi
+
+# FIXME
+# if [ "$usb_interface_running" == "RUNNING" ] && ping -c 1 -W 1 "$gateway_ip"; then
+#    nmcli connection modify "usb0" ipv4.gateway "$gateway_ip" && \
+#        nmcli connection modify "usb0" ipv4.dns "8.8.8.8 8.8.4.4" && \
+#        nmcli connection up "usb0" && \
+#        nmcli dev down "wlan0"
+#    refresh_network_status
+# fi
 
 # If there is no current connection or in access point mode
 if [ -z "$current_connection" ] || [ "$current_connection" == "ap-mode" ]; then
     # Scan available networks
     nmcli radio wifi on
-    sleep 5
+    sleep 10
     available_networks=$(nmcli -t -f ssid dev wifi | grep -v '^$')
 
     for ssid in "${known_networks[@]}"; do
@@ -18,12 +42,14 @@ if [ -z "$current_connection" ] || [ "$current_connection" == "ap-mode" ]; then
         if echo "$available_networks" | grep -q "$ssid"; then
             echo "Known network $ssid found, connecting..."
             nmcli con up "$ssid"
+            refresh_network_status
         fi
     done
 
     if [ -z "$current_connection" ] && [ -z "$usb_interface_running" ]; then
     		echo "No known networks found. Activating Access Point..."
         nmcli con up ap-mode
+        refresh_network_status
     fi
 else
     echo "Connected to $current_connection."
